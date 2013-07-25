@@ -1,0 +1,15 @@
+<containerConfig name="Apache Karaf Enabler">
+    <configFiles baseDir="${KAFAF_HOME}/etc" include="custom.properties">
+        <property key="karaf.framework" value="${KARAF_OSGI_RUNTIME}"/>
+    </configFiles>
+    <configFiles baseDir="${KAFAF_HOME}/etc" include="system.properties">
+        <property key="karaf.name" value="${KARAF_NAME}"/>
+    </configFiles>
+    <configFiles baseDir="${KAFAF_HOME}/etc" include="org.apache.karaf.management.cfg">
+        <property key="rmiRegistryPort" value="${JMX_REGISTRY_PORT}"/>
+        <property key="rmiServerPort" value="${JMX_SERVER_PORT}"/>
+    </configFiles>
+    <configFiles baseDir="${KAFAF_HOME}/etc" include="users.properties">
+        <property key="${ADMIN_USERID}" value="${ADMIN_PASSWORD},admin"/>
+    </configFiles>
+</containerConfig>

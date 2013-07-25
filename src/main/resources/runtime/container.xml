@@ -1,0 +1,181 @@
+<container class="org.fabrician.enabler.KarafContainer" name="KarafContainer">
+
+    <import package="com.datasynapse.fabric.common"/>
+    <import package="com.datasynapse.fabric.container"/>
+    <import package="com.datasynapse.fabric.util"/>
+    <import package="com.datasynapse.fabric.stats"/>
+    <import package="com.datasynapse.fabric.stats.aggregator"/>
+    <import package="com.datasynapse.fabric.stats.evaluator"/>
+    <import package="com.datasynapse.fabric.stats.provider"/>
+    <import package="com.datasynapse.fabric.domain"/>
+    <import package="org.fabrician.enabler.KarafContainer"/>
+    
+    <property name="name" value="Apache Karaf Osgi Enabler"/>
+    <property name="description" value="Enabler for running Apache Karaf Osgi server"/>
+    <property name="version" value="1.0"/>
+    <property name="distributionVersion" value="${distribution.version}"/>
+    <property name="supportedDomainType" value="Default"/>
+    <property name="blocking" value="true"/>
+    
+    <windowsCommand class="LifecycleCommand">
+        <property name='startupCommand' value='"${KARAF_HOME}\bin\start.bat"'/>
+        <property name='shutdownCommand' value='"${KARAF_HOME}\bin\stop.bat"'/>
+    </windowsCommand>
+    
+    <unixCommand class="LifecycleCommand">
+        <property name="startupCommand" value="${KARAF_HOME}/bin/start"/>
+        <property name="shutdownCommand" value="${KARAF_HOME}/bin/stop"/>
+    </unixCommand>
+
+    <supportedFeature class="Feature">
+        <property name="name" value="Application Logging Support"/>
+        <property name="description" value="Support for handling of custom application logs"/>
+        <property name="infoDescription" value="Specify if application logs are archived to the Engine log directory for viewing/searching. &lt;i>Note: The current application logs are still available for viewing/searching if this is not checked.&lt;/i>"/>
+        <property name="infoClass" value="org.fabrician.enabler.KarafLoggingInfo"/>
+    </supportedFeature>
+    
+    <supportedFeature class="Feature">
+        <property name="name" value="Capture Support"/>
+        <property name="description" value="Support for capturing running Application Component"/>
+        <property name="infoDescription" value="Specify if capture is enabled for this Application Component"/>
+        <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.CaptureFeatureInfo"/>
+    </supportedFeature>
+    
+    <runtimeContextTemplate class="DefaultRuntimeContext">
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="CAPTURE_INCLUDES"/>
+            <property name="value" value="etc/.*"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Directories to capture"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JDK_NAME"/>
+            <property name="value" value="j2sdk"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The name of the required JDK"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JDK_VERSION"/>
+            <property name="value" value="1.7"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The version of the required JDK"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="DELETE_RUNTIME_DIR_ON_SHUTDOWN"/>
+            <property name="value" value="true"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Whether to delete the runtime directory on shutdown"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_NAME"/>
+            <property name="value" value="root"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The unique name assigned to the root KARAF instance"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+			<property name="name" value="KARAF_HOME"/>
+			<property name="value" value="${container.getWorkDir()}/karaf"/>
+			<property name="type" value="Environment"/>
+			<property name="description" value="Karaf install directory"/>
+		</variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_BASE"/>
+            <property name="value" value="${KARAF_HOME}"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Directory containing the configuration and OSGi data specific to the root Karaf instance"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DATA"/>
+            <property name="value" value="${KARAF_HOME}/data"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Karaf server data directory"/>
+        </variable>
+         <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_OPTS"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Additional Karaf launch options"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_OPTS"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="JVM launch options"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_DEBUG_OPTS"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="JVM Debug launch options"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEBUG"/>
+            <property name="value" value="false"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Set the JVM launch to Debug mode"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_OSGI_RUNTIME"/>
+            <property name="value" value="felix"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The OSGI runtime to use for Karaf instance, felix|equinox"/>
+        </variable>
+        
+        <!-- ==================== DYNAMIC PORT DECLARATIONS for Karaf JMX Management ==================== -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JMX_SERVER_PORT"/>
+            <property name="value" value="44444"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="JMX Server Port"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JMX_REGISTRY_PORT"/>
+            <property name="value" value="1099"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="JMX Registry Port"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JMX_SERVICE_URL"/>
+            <property name="value" value="service:jmx:rmi://${HostUtils.getFQHostname()}:${JMX_SERVER_PORT}/jndi/rmi://${HostUtils.getFQHostname()}:${JMX_REGISTRY_PORT}/karaf-${KARAF_NAME}"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Jmx Service URL"/>
+            <property name="export" value="true"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="ADMIN_USERID"/>
+            <property name="value" value="karaf"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Karaf Admin Userid"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="ADMIN_PASSWORD"/>
+            <property name="value" value="karaf"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Karaf Admin Password"/>
+        </variable>
+    </runtimeContextTemplate>
+    
+    <startCondition class="KarafStartCondition">
+        <property name="pollPeriod" value="5000"/>
+    </startCondition>
+
+    <runningCondition class="KarafRunningCondition">
+       <property name="pollPeriod" value="10000"/>
+    </runningCondition>
+
+    <statisticsProvider class="com.datasynapse.fabric.stats.provider.MXBeanStatisticsProvider">
+        <mBeanServerRef class="KarafMXBeanServerRef"/>
+        <supportedStatistic class="com.datasynapse.fabric.stats.MXBeanStatisticsMetadata">
+            <property name="name" value="TODO"/>
+            <property name="description" value="The number of bundles."/>
+            <property name="objectName" value="xxx"/>
+            <property name="attributeName" value="ABC"/>
+            <property name="default" value="true"/>
+            <property name="units" value="bundles"/>
+            <aggregator class="SourceAveragedAggregator"/>
+        </supportedStatistic>
+    </statisticsProvider>
+
+</container>

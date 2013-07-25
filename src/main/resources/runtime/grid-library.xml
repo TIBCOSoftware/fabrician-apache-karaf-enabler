@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grid-library>
+	<grid-library-name>apache-karaf-enabler</grid-library-name>
+	<grid-library-version>1.0</grid-library-version>
+
+	<jar-path>
+		<pathelement>ds_jars</pathelement>
+	</jar-path>
+
+	<dependency>
+		<grid-library-name>apache-karaf-distribution</grid-library-name>
+		<grid-library-version>${distribution.version}</grid-library-version>
+	</dependency>
+</grid-library>
