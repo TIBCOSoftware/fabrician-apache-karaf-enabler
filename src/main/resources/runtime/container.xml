@@ -471,14 +471,14 @@
        <!-- Web console feature via "${KARAF_ETC}/jetty.xml" -->
        <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_HTTP_PORT"/>
-            <property name="value" value="8181"/>
+            <property name="value" value="9181"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTP Port for web console"/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_HTTPS_PORT"/>
-            <property name="value" value="8443"/>
+            <property name="value" value="9443"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTPS Port for web console"/>

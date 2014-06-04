@@ -47,8 +47,8 @@ public class KarafContainer extends ExecContainer {
     private static final String KARAF_HTTP_PORT = "KARAF_HTTP_PORT";
     private static final String KARAF_HTTPS_PORT = "KARAF_HTTPS_PORT";
     private static final String KARAF_WEBCONSOLE_URL = "KARAF_WEBCONSOLE_URL";
-    private static final String BIND_ON_ALL_LOCAL_ADDRESSES="BIND_ON_ALL_LOCAL_ADDRESSES";
-    private static final String KARAF_BIND_ADDRESS="KARAF_BIND_ADDRESS";
+    private static final String BIND_ON_ALL_LOCAL_ADDRESSES = "BIND_ON_ALL_LOCAL_ADDRESSES";
+    private static final String KARAF_BIND_ADDRESS = "KARAF_BIND_ADDRESS";
     private static final int UNDEFINED_PORT = -1;
     private JMXConnector jmxc = null;
     private MBeanServerConnection mBeanServer = null;
@@ -91,7 +91,6 @@ public class KarafContainer extends ExecContainer {
         if (DynamicVarsUtils.variableHasValue(KARAF_DEBUG, "true") && !DynamicVarsUtils.validateIntegerVariable(this, KARAF_DEBUG_PORT)) {
             throw new Exception(KARAF_DEBUG_PORT + " runtime context variable is not set properly");
         }
-
         if (!DynamicVarsUtils.validateIntegerVariable(this, KARAF_JMX_RMI_SERVER_PORT)) {
             throw new Exception(KARAF_JMX_RMI_SERVER_PORT + " runtime context variable is not set properly");
         }
@@ -109,10 +108,10 @@ public class KarafContainer extends ExecContainer {
         if (!DynamicVarsUtils.validateIntegerVariable(this, KARAF_HTTPS_PORT)) {
             throw new Exception(KARAF_HTTPS_PORT + " runtime context variable is not set properly");
         }
-        String bindAllStr = getStringVariableValue(BIND_ON_ALL_LOCAL_ADDRESSES,"true");
+        String bindAllStr = getStringVariableValue(BIND_ON_ALL_LOCAL_ADDRESSES, "true");
         boolean bindAll = BooleanUtils.toBoolean(bindAllStr);
         String karafBindAddress = bindAll ? "0.0.0.0" : getStringVariableValue(LISTEN_ADDRESS_VAR);
-        
+
         additionalVariables.add(new RuntimeContextVariable(KARAF_BIND_ADDRESS, karafBindAddress, RuntimeContextVariable.STRING_TYPE));
         additionalVariables.add(new RuntimeContextVariable(KARAF_JMX_SERVICE_URL, getJmxServiceUrl(), RuntimeContextVariable.STRING_TYPE, "Karaf JMX service url"));
         super.doInit(additionalVariables);
@@ -139,8 +138,8 @@ public class KarafContainer extends ExecContainer {
         if (getKarafDebugPort() != UNDEFINED_PORT) {
             info.setProperty(KARAF_DEBUG_PORT, String.valueOf(getKarafDebugPort()));
         }
-        info.setProperty(KARAF_HTTP_PORT,String.valueOf(getHttpPort()));
-        info.setProperty(KARAF_WEBCONSOLE_URL,getWebConsoleUrl());
+        info.setProperty(KARAF_HTTP_PORT, String.valueOf(getHttpPort()));
+        info.setProperty(KARAF_WEBCONSOLE_URL, getWebConsoleUrl());
         getEngineLogger().fine("doInstall invoked");
     }
 
@@ -200,11 +199,11 @@ public class KarafContainer extends ExecContainer {
     }
 
     public String getJmxServiceUrl() throws Exception {
-        return "service:jmx:rmi://" + getKarafBindAddress() + ":" + getJmxRmiServerPort() + "/jndi/rmi://" + getKarafBindAddress() + ":" + getJmxRmiRegistryPort()
-                + "/karaf-" + getKarafName();
+        return "service:jmx:rmi://" + getKarafBindAddress() + ":" + getJmxRmiServerPort() + "/jndi/rmi://" + getKarafBindAddress() + ":" + getJmxRmiRegistryPort() + "/karaf-"
+                + getKarafName();
     }
 
-    public String getWebConsoleUrl() throws Exception{
+    public String getWebConsoleUrl() throws Exception {
         return "http://" + getKarafListenAddress() + ":" + getHttpPort() + "/system/console";
     }
 
@@ -220,14 +219,14 @@ public class KarafContainer extends ExecContainer {
         return getStringVariableValue(KARAF_ADMIN_PWD, "karaf");
     }
 
-    private String getKarafBindAddress() throws Exception{
-        return getStringVariableValue(KARAF_BIND_ADDRESS,"0.0.0.0");
+    private String getKarafBindAddress() throws Exception {
+        return getStringVariableValue(KARAF_BIND_ADDRESS, "0.0.0.0");
     }
-    
-    private String getKarafListenAddress() throws Exception{
-        return getStringVariableValue(LISTEN_ADDRESS_VAR,HostUtils.getFQHostname());
+
+    private String getKarafListenAddress() throws Exception {
+        return getStringVariableValue(LISTEN_ADDRESS_VAR, HostUtils.getFQHostname());
     }
-    
+
     private int getJmxRmiServerPort() throws Exception {
         return NumberUtils.createInteger(getStringVariableValue(KARAF_JMX_RMI_SERVER_PORT, null));
     }
@@ -280,9 +279,10 @@ public class KarafContainer extends ExecContainer {
     private boolean portsConflict() {
         boolean conflicts = false;
         try {
+
             if (serverPortInUse(getKarafDebugPort())) {
                 conflicts = true;
-                getEngineLogger().severe("Port conflict : Karaf debug port <" + getJmxRmiServerPort() + ">" + " is already in use.");
+                getEngineLogger().severe("Port conflict : Karaf debug port <" + getKarafDebugPort() + ">" + " is already in use.");
             }
 
             if (serverPortInUse(getJmxRmiServerPort())) {
@@ -301,7 +301,7 @@ public class KarafContainer extends ExecContainer {
 
             if (serverPortInUse(getHttpPort())) {
                 conflicts = true;
-                getEngineLogger().severe("Port conflict : SSH daemon port <" + getSSHdPort() + ">" + " is already in use.");
+                getEngineLogger().severe("Port conflict : Http port <" + getHttpPort() + ">" + " is already in use.");
             }
 
         } catch (Exception e) {

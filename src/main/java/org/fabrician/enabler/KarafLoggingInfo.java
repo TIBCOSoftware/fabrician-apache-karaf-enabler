@@ -10,7 +10,7 @@ import com.datasynapse.fabric.domain.featureinfo.ApplicationLoggingInfo;
 
 public class KarafLoggingInfo extends ApplicationLoggingInfo {
     private static final long serialVersionUID = -2029102510943271808L;
-    public static final String[] DEFAULT_PATTERNS = { "${KARAF_HOME}/data/log/.*\\.log","${KARAF_BASE}/log/.*\\.log" };
+    public static final String[] DEFAULT_PATTERNS = { "apache-karaf/data/log/.*\\.log.*","apache-karaf/log/.*\\.log.*" };
 
     protected String[] getDefaultPatterns() {
         return DEFAULT_PATTERNS;
