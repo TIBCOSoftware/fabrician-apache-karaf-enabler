@@ -1,15 +1,87 @@
-<containerConfig name="Apache Karaf Enabler">
-    <configFiles baseDir="${KAFAF_HOME}/etc" include="custom.properties">
-        <property key="karaf.framework" value="${KARAF_OSGI_RUNTIME}"/>
-    </configFiles>
-    <configFiles baseDir="${KAFAF_HOME}/etc" include="system.properties">
-        <property key="karaf.name" value="${KARAF_NAME}"/>
-    </configFiles>
-    <configFiles baseDir="${KAFAF_HOME}/etc" include="org.apache.karaf.management.cfg">
-        <property key="rmiRegistryPort" value="${JMX_REGISTRY_PORT}"/>
-        <property key="rmiServerPort" value="${JMX_SERVER_PORT}"/>
-    </configFiles>
-    <configFiles baseDir="${KAFAF_HOME}/etc" include="users.properties">
-        <property key="${ADMIN_USERID}" value="${ADMIN_PASSWORD},admin"/>
-    </configFiles>
+<containerConfig name="Apache Karaf Enabler 1.0.0">
+	<configFiles baseDir="${KARAF_ETC}" include="custom.properties">
+		<property key="karaf.framework" value="${KARAF_FRAMEWORK}"/>
+		<property key="org.osgi.framework.startlevel.beginning" value="${KARAF_FRAMEWORK_START_LEVEL}"/>
+		<property key="karaf.startlevel.bundle" value="${KARAF_FEATURE_START_LEVEL}"/>
+		<property key="karaf.systemBundlesStartLevel" value="${KARAF_SYSTEM_START_LEVEL}"/>
+		<property key="obr.repository.url" value="${KARAF_OBR_REPOSITORIES}"/>
+		<property key="felix.fileinstall.enableConfigSave" value="${KARAF_CONFIG_FILES_SAVE_ENABLED}"/>
+		<property key="felix.fileinstall.dir" value="${KARAF_CONFIG_FILES_DIR}"/>
+		<property key="felix.fileinstall.filter" value="${KARAF_CONFIG_FILES_FILTER}"/>
+		<property key="felix.fileinstall.poll" value="${KARAF_CONFIG_FILES_POLL_INTERVAL}"/>
+		<property key="felix.fileinstall.noInitialDelay" value="${KARAF_CONFIG_FILES_POLL_NO_DELAY}"/>
+		<property key="felix.fileinstall.log.level" value="${KARAF_CONFIG_FILES_SERVICE_LOG_LEVEL}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="system.properties">
+		<property key="karaf.name" value="${KARAF_NAME}"/>
+		<property key="karaf.clean.all" value="${KARAF_CLEAN_All}"/>
+		<property key="karaf.clean.cache" value="${KARAF_CLEAN_CACHE}"/>
+		<property key="karaf.admin.role" value="${KARAF_ADMIN_ROLE}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="users.properties">
+		<property key="karaf" action="Remove"/>
+		<property key="_g_:admingroup" action="Remove"/>
+		<property key="${KARAF_ADMIN_USER}" value="${KARAF_ADMIN_PWD},_g_:admingroup"/>
+		<property key="_g_:admingroup" value="group,${KARAF_ADMIN_ROLE},manager,viewer"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="keys.properties">
+		<property key="karaf" action="Remove"/>
+		<property key="${KARAF_ADMIN_USER}" value="${KARAF_ADMIN_SSH_PUBLIC_KEY},${KARAF_ADMIN_ROLE}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.karaf.jaas.cfg">
+		<property key="encryption.enabled" value="${KARAF_PWD_ENCRYPTION_ENABLED}"/>
+		<property key="encryption.algorithm" value="${KARAF_PWD_ENCRYPTION_ALGORITHM}"/>
+		<property key="encryption.encoding" value="${KARAF_PWD_ENCRYPTION_ENCODING}"/>
+		<property key="encryption.name" value="${KARAF_PWD_ENCRYPTION_NAME}"/>
+		<property key="encryption.prefix" value="${KARAF_PWD_ENCRYPTION_PREFIX}"/>
+		<property key="encryption.suffix" value="${KARAF_PWD_ENCRYPTION_SUFFIX}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.ops4j.pax.logging.cfg">
+		<property key="log4j.rootLogger" value="${KARAF_LOG_LEVEL}, out, osgi:*" />
+		<property key="log4j.appender.out.file" value="${KARAF_LOG_FILE}"/>
+		<property key="log4j.appender.out.maxFileSize" value="${KARAF_MAX_LOG_SIZE}" />
+		<property key="log4j.appender.out.maxBackupIndex" value="${KARAF_MAX_BACKUP_SIZE}"
+			/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.karaf.shell.cfg">
+		<property key="sshPort" value="${KARAF_SSH_PORT}"/>
+		<property key="sshHost" value="${KARAF_BIND_ADDRESS}"/>
+		<property key="sshIdleTimeout" value="${KARAF_SSH_IDLE_TIMEOUT}"/>
+		<property key="sshRealm" value="${KARAF_SSH_REALM}"/>
+		<property key="hostKey" value="${KARAF_SSH_KEY_FILE}"/>
+		<property key="keySize" value="${KARAF_SSH_KEY_SIZE}"/>
+		<property key="algorithm" value="${KARAF_SSH_KEY_ALGORITHM}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.karaf.management.cfg">
+		<property key="rmiRegistryPort" value="${KARAF_JMX_RMI_REGISTRY_PORT}"/>
+		<property key="rmiServerPort" value="${KARAF_JMX_RMI_SERVER_PORT}"/>
+		<property key="jmxRealm" value="${KARAF_JMX_REALM}"/>
+		<property key="serviceUrl" value="${container.getJmxServiceUrl()}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.ops4j.pax.url.mvn.cfg">
+		<property key="org.ops4j.pax.url.mvn.repositories" value="${KARAF_MVN_REMOTE_REPOSITORIES}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.karaf.features.cfg">
+		<property key="featuresRepositories" value="${KARAF_FEATURES_REPOSITORIES}"/>
+		<property key="featuresBoot" value="${KARAF_BOOTUP_FEATURES}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.karaf.features.obr.cfg">
+		<property key="resolveOptionalImports" value="${OBR_RESOLVE_OPTIONAL_IMPORTS}"/>
+		<property key="startByDefault" value="${OBR_START_RESOLVED}"/>
+		<property key="startLevel" value="${OBR_RESOLVED_START_LEVEL}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.apache.felix.fileinstall-deploy.cfg">
+		<property key="felix.fileinstall.dir" value="${KARAF_DEPLOY_DIR}"/>
+		<property key="felix.fileinstall.tmpdir" value="${KARAF_DEPLOY_TMPDIR}"/>
+		<property key="felix.fileinstall.poll" value="${KARAF_DEPLOY_POLL_INTERVAL}"/>
+		<property key="felix.fileinstall.start.level" value="${KARAF_DEPLOY_START_LEVEL}"/>
+		<property key="felix.fileinstall.active.level" value="${KARAF_DEPLOY_ACTIVE_LEVEL}"/>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml">
+		<xpath expression="/Configure/Call[@name='addConnector']/Arg/New/Set[@name='port']/Property/@default"
+			value="${KARAF_HTTP_PORT}"/>
+		<xpath expression="/Configure/Call[@name='addConnector']/Arg/New/Set[@name='confidentialPort']/Property/@default"
+			value="${KARAF_HTTPS_PORT}"/>
+	</configFiles>
+
 </containerConfig>

@@ -3,14 +3,14 @@
 	http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.fabrician.enabler</groupId>
-	<artifactId>karaf</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>apache-karaf</artifactId>
+	<version>1.0.0</version>
 	<name>Apache Karaf Enabler</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<distribution.os>all</distribution.os>
-		<distribution.version>3.0.0</distribution.version>
-		<fabric-version>5.5.0.14</fabric-version>
+		<distribution.version>3.0.1</distribution.version>
+		<fabric-version>5.6.0.13</fabric-version>
 		<fabric-location>${basedir}/SilverFabricSDK.jar</fabric-location>
 		<karaf.root>apache-karaf</karaf.root>
 	</properties>
@@ -100,8 +100,8 @@
 			<groupId>com.datasynapse.fabricserver</groupId>
 			<artifactId>fabric</artifactId>
 			<version>${fabric-version}</version>
-			<scope>system</scope>
-			<systemPath>${fabric-location}</systemPath>
+			<scope>compile</scope>
+			<!--<systemPath>${fabric-location}</systemPath> -->
 		</dependency>
 	</dependencies>
 </project>

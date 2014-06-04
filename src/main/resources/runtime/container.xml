@@ -1,5 +1,4 @@
 <container class="org.fabrician.enabler.KarafContainer" name="KarafContainer">
-
     <import package="com.datasynapse.fabric.common"/>
     <import package="com.datasynapse.fabric.container"/>
     <import package="com.datasynapse.fabric.util"/>
@@ -10,22 +9,25 @@
     <import package="com.datasynapse.fabric.domain"/>
     <import package="org.fabrician.enabler.KarafContainer"/>
     
-    <property name="name" value="Apache Karaf Osgi Enabler"/>
-    <property name="description" value="Enabler for running Apache Karaf Osgi server"/>
+    <property name="name" value="Apache Karaf Enabler"/>
+    <property name="description" value="Enabler for running Apache Karaf"/>
     <property name="version" value="1.0"/>
     <property name="distributionVersion" value="${distribution.version}"/>
-    <property name="supportedDomainType" value="Default"/>
+    <property name="supportedDomainType" value="Default:${component.type.version}"/>
     <property name="blocking" value="true"/>
+    <property name="shutdownTimeout" value="300000"/>
     
-    <windowsCommand class="LifecycleCommand">
-        <property name='startupCommand' value='"${KARAF_HOME}\bin\start.bat"'/>
-        <property name='shutdownCommand' value='"${KARAF_HOME}\bin\stop.bat"'/>
+    <windowsCommand class="com.datasynapse.fabric.container.LifecycleCommand">
+        <property name="startupCommand" value="${KARAF_HOME}\bin\karaf.bat server"/>
+        <property name="shutdownCommand" value="${KARAF_HOME}\bin\stop.bat"/>
     </windowsCommand>
-    
-    <unixCommand class="LifecycleCommand">
-        <property name="startupCommand" value="${KARAF_HOME}/bin/start"/>
+    <unixCommand class="com.datasynapse.fabric.container.LifecycleCommand">
+        <property name="startupCommand" value="${KARAF_HOME}/bin/karaf server"/>
         <property name="shutdownCommand" value="${KARAF_HOME}/bin/stop"/>
     </unixCommand>
+    <startCondition class="org.fabrician.enabler.KarafStartCondition">
+        <property name="pollPeriod" value="5000"/>
+    </startCondition>
 
     <supportedFeature class="Feature">
         <property name="name" value="Application Logging Support"/>
@@ -42,12 +44,8 @@
     </supportedFeature>
     
     <runtimeContextTemplate class="DefaultRuntimeContext">
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="CAPTURE_INCLUDES"/>
-            <property name="value" value="etc/.*"/>
-            <property name="type" value="String"/>
-            <property name="description" value="Directories to capture"/>
-        </variable>
+        
+        <!-- JDK and JVM-related runtimes-related -->
         <variable class="RuntimeContextVariable">
             <property name="name" value="JDK_NAME"/>
             <property name="value" value="j2sdk"/>
@@ -61,20 +59,73 @@
             <property name="description" value="The version of the required JDK"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="DELETE_RUNTIME_DIR_ON_SHUTDOWN"/>
-            <property name="value" value="true"/>
+            <property name="name" value="JAVA_HOME"/>
+            <property name="value" value="${GRIDLIB_JAVA_HOME}"/>
             <property name="type" value="Environment"/>
-            <property name="description" value="Whether to delete the runtime directory on shutdown"/>
+            <property name="description" value="The Java home directory"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_NAME"/>
-            <property name="value" value="root"/>
-            <property name="type" value="String"/>
-            <property name="description" value="The unique name assigned to the root KARAF instance"/>
+            <property name="name" value="JAVA_MIN_MEM"/>
+            <property name="value" value="128M"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Minimum JVM startup memory to use"/>
         </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_MAX_MEM"/>
+            <property name="value" value="1024M"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Maximum JVM startup memory to use"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_PERM_MEM"/>
+            <property name="value" value="128M"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="JVM permgen memmory to use"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_MAX_PERM_MEM"/>
+            <property name="value" value="256M"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Maximum JVM permgen memory to use"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEBUG"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Enabled/disabled JVM debug by setting it to 'true' or ''(false)"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEBUG_PORT"/>
+            <property name="value" value="5005"/>
+            <property name="type" value="Environment"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="JVM debug port for Karaf instance"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_DEBUG_OPTS"/>
+            <property name="value" value="-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=${KARAF_DEBUG_PORT}"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Custom JVM debug options to use when launching JVM"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="JAVA_OPTS"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Custom JVM options to use when launching JVM"/>
+        </variable>
+        
+        <!-- Karaf-related launch parameters -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_TITLE"/>
+            <property name="value" value="Silver Fabric Karaf"/>
+            <property name="type" value="Environment"/>
+            <property name="autoIncrementType" value="Append"/>
+            <property name="description" value="Window console title"/>
+        </variable>
+        
         <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
 			<property name="name" value="KARAF_HOME"/>
-			<property name="value" value="${container.getWorkDir()}/karaf"/>
+			<property name="value" value="${container.getWorkDir()}/apache-karaf"/>
 			<property name="type" value="Environment"/>
 			<property name="description" value="Karaf install directory"/>
 		</variable>
@@ -88,94 +139,415 @@
             <property name="name" value="KARAF_DATA"/>
             <property name="value" value="${KARAF_HOME}/data"/>
             <property name="type" value="Environment"/>
-            <property name="description" value="Karaf server data directory"/>
-        </variable>
-         <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_OPTS"/>
-            <property name="value" value=""/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="Additional Karaf launch options"/>
+            <property name="description" value="Karaf server data directory, where the Osgi bundles are resolved and cached."/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="JAVA_OPTS"/>
-            <property name="value" value=""/>
+            <property name="name" value="KARAF_ETC"/>
+            <property name="value" value="${KARAF_HOME}/etc"/>
             <property name="type" value="Environment"/>
-            <property name="description" value="JVM launch options"/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="JAVA_DEBUG_OPTS"/>
-            <property name="value" value=""/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="JVM Debug launch options"/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_DEBUG"/>
-            <property name="value" value="false"/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="Set the JVM launch to Debug mode"/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_OSGI_RUNTIME"/>
-            <property name="value" value="felix"/>
-            <property name="type" value="String"/>
-            <property name="description" value="The OSGI runtime to use for Karaf instance, felix|equinox"/>
+            <property name="description" value="Karaf server etc directory, where the various configuration files are located."/>
         </variable>
         
-        <!-- ==================== DYNAMIC PORT DECLARATIONS for Karaf JMX Management ==================== -->
+        <!-- Karaf version customization set in "${KARAF_ETC}/custom.properties", this overrides any values in  "${KARAF_ETC}/config.properties"-->
         <variable class="RuntimeContextVariable">
-            <property name="name" value="JMX_SERVER_PORT"/>
+            <property name="name" value="KARAF_FRAMEWORK"/>
+            <property name="value" value="felix"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The OSGI framework to use for Karaf instance, 'felix' or 'equinox'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_FRAMEWORK_START_LEVEL"/>
+            <property name="value" value="100"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The OSGI framework start-level to reach when considered active"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_FEATURE_START_LEVEL"/>
+            <property name="value" value="80"/>
+            <property name="type" value="String"/>
+            <property name="description" value="OSGI bundle start-level for deployed features"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SYSTEM_START_LEVEL"/>
+            <property name="value" value="50"/>
+            <property name="type" value="String"/>
+            <property name="description" value="OSGI bundles with start-level less than this value is considered system bundles"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_OBR_REPOSITORIES"/>
+            <property name="value" value=""/>
+            <property name="type" value="String"/>
+            <property name="description" value="Space-separated list of OBR URL for bundle repository xmls"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_SAVE_ENABLED"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Specify to flush back in the configuration file any changes performed directly on the configuration service via JMX, SSH, etc."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_DIR"/>
+            <property name="value" value="${KARAF_ETC}"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Directory where Apache Karaf is looking for configuration files"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_FILTER"/>
+            <property name="value" value=".*\\.cfg"/>
+            <property name="type" value="String"/>
+            <property name="description" value="File name pattern used to load configuration files"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_POLL_INTERVAL"/>
+            <property name="value" value="1000"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Polling/reloading interval(in millisecs) for configuration files"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_POLL_NO_DELAY"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Delay in loading configuration files when configuration service starts"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CONFIG_FILES_SERVICE_LOG_LEVEL"/>
+            <property name="value" value="3"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Log message verbosity level of the configuration polling/reloading service"/>
+        </variable>
+        
+        <!-- Karaf system, OSGI data/cache handling in "${KARAF_ETC}/system.properties" -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_NAME"/>
+            <property name="value" value="root"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Append"/>
+            <property name="description" value="Name of this Karaf root instance"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CLEAN_All"/>
+            <property name="value" value="false"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Deletes the entire ${KARAF_DATA} directory at every start"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CLEAN_CACHE"/>
+            <property name="value" value="false"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Deletes the ${KARAF_DATA}/cache directory at every start"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_ADMIN_ROLE"/>
+            <property name="value" value="admin"/>
+            <property name="type" value="String"/>
+            <property name="description" value="System-wide role name associated with an administrative user"/>
+        </variable>
+        
+        <!--Karaf logging settings set in "${KARAF_ETC}/org.ops4j.pax.logging.cfg" -->
+        
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_LOG_LEVEL"/>
+            <property name="value" value="INFO"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The log4J logging level to use : 'INFO','ERROR','WARN' or 'DEBUG'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_LOG_FILE"/>
+            <property name="value" value="${KARAF_BASE}/log/karaf.log"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The log file location"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_MAX_LOG_SIZE"/>
+            <property name="value" value="50MB"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The maximum rolling log file size."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_MAX_BACKUP_SIZE"/>
+            <property name="value" value="100"/>
+            <property name="type" value="String"/>
+            <property name="description" value="The maximum number of logs backup."/>
+        </variable>
+        
+        <!-- Admin user as specified in "${KARAF_ETC}/user.properties"-->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_ADMIN_USER"/>
+            <property name="value" value="karaf"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Karaf Admin user name"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_ADMIN_PWD"/>
+            <property name="value" value="karaf"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Karaf Admin user password"/>
+        </variable>
+        
+        <!-- JAAS module settings at "${KARAF_ETC}/org.apache.karaf.jaas.cfg" -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_ENABLED"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+            <property name="description" value="When enabled(true), the password are encrypted at the first time an user logs in. If set to false, the password exists as plaintext perpectually."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_ALGORITHM"/>
+            <property name="value" value="MD5"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Set the encryption message digest algorithm to use in Karaf JAAS login module: 'MD2','MD5','SHA-1','SHA-256','SHA-384' or 'SHA-512'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_ENCODING"/>
+            <property name="value" value="hexadecimal"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Set the encryption encoding to use: 'hexadecimal' or 'base64'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_NAME"/>
+            <property name="value" value="basic"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Set the encryption encoding to use: 'hexadecimal' or 'base64'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_PREFIX"/>
+            <property name="value" value="{CRYPT}"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Prefix to prepend to the encrypted password"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_PWD_ENCRYPTION_SUFFIX"/>
+            <property name="value" value="{CRYPT}"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Suffix to append to the encrypted password"/>
+        </variable>
+        
+        <!-- Karaf access via SSHd set via "${KARAF_ETC}/org.apache.karaf.shell.cfg" -->
+         <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_PORT"/>
+            <property name="value" value="8101"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="SSH port of Karaf instance's SSHd server"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_IDLE_TIMEOUT"/>
+            <property name="value" value="1800000"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Inactivity timeout(milliseconds) before logout a SSH session"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_REALM"/>
+            <property name="value" value="karaf"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Defines which JAAS domain to use for password authentication"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_KEY_FILE"/>
+            <property name="value" value="${KARAF_ETC}/host.key"/>
+            <property name="type" value="String"/>
+            <property name="description" value="This file stores the public and private key pair of the Karaf instance's SSHd server"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_KEY_ALGORITHM"/>
+            <property name="value" value="DSA"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Host key algorithm used by the SSHd server. The possible values are 'DSA' or 'RSA'"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_SSH_KEY_SIZE"/>
+            <property name="value" value="1024"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Self defined key size in '1024', '2048', '3072', or '4096'-bits"/>
+        </variable>
+        
+        <!-- SSH public key credentials as set in "{KARAF_ETC}/keys.properties" -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_ADMIN_SSH_PUBLIC_KEY"/>
+            <property name="value" value="AAAAB3NzaC1kc3MAAACBAP1/U4EddRIpUt9KnC7s5Of2EbdSPO9EAMMeP4C2USZpRV1AIlH7WT2NWPq/xfW6MPbLm1Vs14E7gB00b/JmYLdrmVClpJ+f6AR7ECLCT7up1/63xhv4O1fnxqimFQ8E+4P208UewwI1VBNaFpEy9nXzrith1yrv8iIDGZ3RSAHHAAAAFQCXYFCPFSMLzLKSuYKi64QL8Fgc9QAAAIEA9+GghdabPd7LvKtcNrhXuXmUr7v6OuqC+VdMCz0HgmdRWVeOutRZT+ZxBxCBgLRJFnEj6EwoFhO3zwkyjMim4TwWeotUfI0o4KOuHiuzpnWRbqN/C/ohNWLx+2J6ASQ7zKTxvqhRkImog9/hWuWfBpKLZl6Ae1UlZAFMO/7PSSoAAACBAKKSU2PFl/qOLxIwmBZPPIcJshVe7bVUpFvyl3BbJDow8rXfskl8wO63OzP/qLmcJM0+JbcRU/53JjTuyk31drV2qxhIOsLDC9dGCWj47Y7TyhPdXh/0dthTRBy6bqGtRPxGa7gJov1xm/UuYYXPIUR/3x9MAZvZ5xvE0kYXO+rx"/>
+            <property name="type" value="String"/>
+            <property name="description" value="SSH public key credentials for ${KARAF_ADMIN_USER}.This is the public key part of an SSH key pair (typically found in a user's home directory in ~/.ssh/id_rsa.pub in a UNIX system)"/>
+        </variable>
+        
+        <!-- Karaf access via JMX set in "${KARAF_ETC}/org.apache.karaf.management.cfg" -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_JMX_RMI_SERVER_PORT"/>
             <property name="value" value="44444"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
-            <property name="description" value="JMX Server Port"/>
+            <property name="description" value="The port number of the JMX RMI server"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="JMX_REGISTRY_PORT"/>
+            <property name="name" value="KARAF_JMX_RMI_REGISTRY_PORT"/>
             <property name="value" value="1099"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
-            <property name="description" value="JMX Registry Port"/>
+            <property name="description" value="The port number of the JMX RMI registry"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="JMX_SERVICE_URL"/>
-            <property name="value" value="service:jmx:rmi://${HostUtils.getFQHostname()}:${JMX_SERVER_PORT}/jndi/rmi://${HostUtils.getFQHostname()}:${JMX_REGISTRY_PORT}/karaf-${KARAF_NAME}"/>
-            <property name="type" value="String"/>
-            <property name="description" value="Jmx Service URL"/>
-            <property name="export" value="true"/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="ADMIN_USERID"/>
+            <property name="name" value="KARAF_JMX_REALM"/>
             <property name="value" value="karaf"/>
             <property name="type" value="String"/>
-            <property name="description" value="Karaf Admin Userid"/>
+            <property name="description" value="Name of the JAAS domain used for authentication"/>
+        </variable>
+        
+        
+       <!-- Maven repository support to download remote Osgi bundles via "${KARAF_ETC}/org.ops4j.pax.url.mvn.cfg" -->
+       
+       <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_MVN_REMOTE_REPOSITORIES"/>
+            <property name="value" value="http://repo1.maven.org/maven2@id=central,http://repository.springsource.com/maven/bundles/release@id=spring.ebr.release,http://repository.springsource.com/maven/bundles/external@id=spring.ebr.external,file:${karaf.home}/${karaf.default.repository}@id=system.repository,file:${karaf.data}/kar@id=kar.repository@multi"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Comma separated list of maven repositories scanned when resolving an artifact"/>
+        </variable>
+        
+       <!-- Karaf bootup features via "${KARAF_ETC}/org.apache.karaf.features.cfg"-->
+       <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_FEATURES_REPOSITORIES"/>
+            <property name="value" value="mvn:org.apache.karaf.features/standard/3.0.1/xml/features,mvn:org.apache.karaf.features/enterprise/3.0.1/xml/features,mvn:org.ops4j.pax.web/pax-web-features/3.1.0/xml/features,mvn:org.apache.karaf.features/spring/3.0.1/xml/features"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Coma separated list of features repositories (features XML) URLs"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="ADMIN_PASSWORD"/>
-            <property name="value" value="karaf"/>
+            <property name="name" value="KARAF_BOOTUP_FEATURES"/>
+            <property name="value" value="config,standard,region,package,kar,ssh,management,obr,war,webconsole"/>
             <property name="type" value="String"/>
-            <property name="description" value="Karaf Admin Password"/>
+            <property name="description" value="Coma separated list of features to install at bootup"/>
+        </variable>
+        
+        <!-- Karaf OBR features resolver settings via "${KARAF_ETC/org.apache.karaf.features.obr.cfg}"/-->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="OBR_RESOLVE_OPTIONAL_IMPORTS"/>
+            <property name="value" value="false"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Specify if features OBR resolver has to resolve optional imports"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="OBR_START_RESOLVED"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Specify if resolved bundles should be started by default"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="OBR_RESOLVED_START_LEVEL"/>
+            <property name="value" value="80"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Specify the start level for resolved bundles"/>
+        </variable>
+        
+       <!-- Karaf "hot" deploying settings via "${KARAF_ETC}/org.apache.felix.fileinstall-deploy.cfg" -->
+      
+       <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEPLOY_DIR"/>
+            <property name="value" value="${KARAF_BASE}/deploy"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Location of the deploy dir where Karaf polls for new hot deploy files"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEPLOY_TMPDIR"/>
+            <property name="value" value="${KARAF_DATA}/generated-bundles"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Location of a temporary dir where the deployers store their files"/>
+        </variable>  
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEPLOY_POLL_INTERVAL"/>
+            <property name="value" value="1000"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Polling interval(millisecs) for new hot deploys"/>
+        </variable> 
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEPLOY_START_LEVEL"/>
+            <property name="value" value="80"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Deployed bundles start level; if set to 0, the default framework bundle start level ${KARAF_FEATURE_START_LEVEL} will be used instead"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DEPLOY_ACTIVE_LEVEL"/>
+            <property name="value" value="80"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Skipping scanning for deployed files unless the active framework start level ${KARAF_FRAMEWORK_START_LEVEL}is greater than this value"/>
+        </variable>      
+
+       <!-- Web console feature via "${KARAF_ETC}/jetty.xml" -->
+       <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_HTTP_PORT"/>
+            <property name="value" value="8181"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="HTTP Port for web console"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_HTTPS_PORT"/>
+            <property name="value" value="8443"/>
+            <property name="type" value="String"/>
+            <property name="autoIncrementType" value="Numeric"/>
+            <property name="description" value="HTTPS Port for web console"/>
+        </variable>
+        
+        <!--  SF-specific funtionality-->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="BIND_ON_ALL_LOCAL_ADDRESSES"/>
+            <property name="value" value="true"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Specify if all network interfaces should be bounded for the SSHd and JMX server"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="LISTEN_ADDRESS_NET_MASK"/>
+            <property name="value" value=""/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="A comma delimited list of net masks in CIDR notation.  The first IP address found that matches one of the net masks is used as the listen address.  Note that BIND_ON_ALL_LOCAL_ADDRESSES overrides this setting."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="DELETE_RUNTIME_DIR_ON_SHUTDOWN"/>
+            <property name="value" value="true"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Whether to delete the runtime directory on shutdown"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="CAPTURE_INCLUDES"/>
+            <property name="value" value="${KARAF_ETC}/.*"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Directories with settings/configuration files to capture."/>
         </variable>
     </runtimeContextTemplate>
     
-    <startCondition class="KarafStartCondition">
-        <property name="pollPeriod" value="5000"/>
-    </startCondition>
-
-    <runningCondition class="KarafRunningCondition">
-       <property name="pollPeriod" value="10000"/>
-    </runningCondition>
-
     <statisticsProvider class="com.datasynapse.fabric.stats.provider.MXBeanStatisticsProvider">
-        <mBeanServerRef class="KarafMXBeanServerRef"/>
-        <supportedStatistic class="com.datasynapse.fabric.stats.MXBeanStatisticsMetadata">
-            <property name="name" value="TODO"/>
-            <property name="description" value="The number of bundles."/>
-            <property name="objectName" value="xxx"/>
-            <property name="attributeName" value="ABC"/>
-            <property name="default" value="true"/>
-            <property name="units" value="bundles"/>
-            <aggregator class="SourceAveragedAggregator"/>
-        </supportedStatistic>
-    </statisticsProvider>
-
+		<mBeanServerRef class="org.fabrician.enabler.KarafMXBeanServerRef"/>
+        
+		<supportedStatistic class="com.datasynapse.fabric.stats.MXBeanStatisticsMetadata"> 
+	    	<property name="name" value="Karaf JVM Used Memory"/>
+		    <property name="description" value="Used heap memory."/>
+		    <property name="objectName" value="java.lang:type=Memory"/>
+		    <property name="attributeName" value="HeapMemoryUsage"/>
+		    <property name="xpath" value="/HeapMemoryUsage/used" />  
+	    	<property name="default" value="true"/> 
+		    <property name="units" value="MB"/>
+		  	<aggregator class="com.datasynapse.fabric.stats.aggregator.SourceAveragedAggregator"/>
+		  	<evaluator class="com.datasynapse.fabric.stats.evaluator.ConvertBytesToMegabytesEvaluator"/> 
+    	</supportedStatistic>
+    	
+    	<supportedStatistic class="com.datasynapse.fabric.stats.MXBeanStatisticsMetadata"> 
+	    	<property name="name" value="Karaf JVM Committed Memory"/>
+		    <property name="description" value="Committed heap memory."/>
+		    <property name="objectName" value="java.lang:type=Memory"/>
+		    <property name="attributeName" value="HeapMemoryUsage"/>
+		    <property name="xpath" value="/HeapMemoryUsage/committed" /> 
+	    	<property name="default" value="true"/> 
+		    <property name="units" value="MB"/>
+		  	<aggregator class="com.datasynapse.fabric.stats.aggregator.SourceAveragedAggregator"/>
+		  	<evaluator class="com.datasynapse.fabric.stats.evaluator.ConvertBytesToMegabytesEvaluator"/> 
+	    </supportedStatistic>
+	    
+    	<supportedStatistic class="com.datasynapse.fabric.stats.MXBeanStatisticsMetadata"> 
+	    	<property name="name" value="Karaf JVM Thread Count"/>
+		    <property name="description" value="The number of threads."/>
+		    <property name="objectName" value="java.lang:type=Threading"/>
+		    <property name="attributeName" value="ThreadCount"/>
+		    <property name="xpath" value="/ThreadCount" /> 
+	    	<property name="default" value="true"/> 
+		    <property name="units" value="threads"/>
+		  	<aggregator class="com.datasynapse.fabric.stats.aggregator.SourceAveragedAggregator"/>
+	    </supportedStatistic>
+	  </statisticsProvider>
+    
 </container>

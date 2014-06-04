@@ -31,5 +31,12 @@
 				<include>*.jar</include>
 			</includes>
 		</fileSet>
+		<fileSet>
+			<directory>src/main/resources/content/apache-karaf/etc</directory>
+			<outputDirectory>content/apache-karaf/etc</outputDirectory>
+			<includes>
+				<include>jetty.xml</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>
