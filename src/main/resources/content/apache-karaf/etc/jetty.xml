@@ -45,6 +45,7 @@ DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
                 <Set name="confidentialPort">9443</Set>
                 <Set name="lowResourcesConnections">20000</Set>
                 <Set name="lowResourcesMaxIdleTime">5000</Set>
+                <Set name="resolveNames">false</Set>
             </New>
         </Arg>
     </Call>
