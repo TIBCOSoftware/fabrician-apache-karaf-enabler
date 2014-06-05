@@ -25,12 +25,14 @@ import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 
 import com.datasynapse.commons.util.HostUtils;
 import com.datasynapse.fabric.common.ActivationInfo;
 import com.datasynapse.fabric.common.RuntimeContextVariable;
 import com.datasynapse.fabric.container.ExecContainer;
+import com.datasynapse.fabric.util.ContainerUtils;
 import com.datasynapse.fabric.util.DynamicVarsUtils;
 
 public class KarafContainer extends ExecContainer {
@@ -49,10 +51,13 @@ public class KarafContainer extends ExecContainer {
     private static final String KARAF_WEBCONSOLE_URL = "KARAF_WEBCONSOLE_URL";
     private static final String BIND_ON_ALL_LOCAL_ADDRESSES = "BIND_ON_ALL_LOCAL_ADDRESSES";
     private static final String KARAF_BIND_ADDRESS = "KARAF_BIND_ADDRESS";
+    private static final String CELLAR_CLUSTERING_ENABLED = "CELLAR_CLUSTERING_ENABLED";
+    private static final String CELLAR_GROUP_MEMBERSHIP = "CELLAR_GROUP_MEMBERSHIP";
     private static final int UNDEFINED_PORT = -1;
     private JMXConnector jmxc = null;
     private MBeanServerConnection mBeanServer = null;
-
+    private KarafClusteringInfo clusterFeatureInfo = null;
+    
     public KarafContainer() {
         super();
     }
@@ -87,6 +92,7 @@ public class KarafContainer extends ExecContainer {
     @Override
     protected void doInit(List<RuntimeContextVariable> additionalVariables) throws Exception {
         getEngineLogger().fine("doInit invoked");
+        clusterFeatureInfo = (KarafClusteringInfo) ContainerUtils.getFeatureInfo(KarafClusteringInfo.FEATURE_NAME, this, getCurrentDomain());
 
         if (DynamicVarsUtils.variableHasValue(KARAF_DEBUG, "true") && !DynamicVarsUtils.validateIntegerVariable(this, KARAF_DEBUG_PORT)) {
             throw new Exception(KARAF_DEBUG_PORT + " runtime context variable is not set properly");
@@ -114,6 +120,21 @@ public class KarafContainer extends ExecContainer {
 
         additionalVariables.add(new RuntimeContextVariable(KARAF_BIND_ADDRESS, karafBindAddress, RuntimeContextVariable.STRING_TYPE));
         additionalVariables.add(new RuntimeContextVariable(KARAF_JMX_SERVICE_URL, getJmxServiceUrl(), RuntimeContextVariable.STRING_TYPE, "Karaf JMX service url"));
+        if (clusterFeatureInfo == null) {
+            additionalVariables.add(new RuntimeContextVariable(CELLAR_CLUSTERING_ENABLED, "false", RuntimeContextVariable.STRING_TYPE));
+        } else {
+            String group_membership = StringUtils.trimToEmpty(resolveVariables(clusterFeatureInfo.getGroupMembership()));
+            group_membership = StringUtils.isBlank(group_membership) ? "default" : group_membership;
+            String[] groups = StringUtils.splitByWholeSeparator(group_membership, ",");
+            for (String g : groups) {
+                if (StringUtils.trimToEmpty(g).isEmpty()) {
+                    throw new Exception("'Cellar Group Membership' value specified in the Clustering feature is not set properly.");
+                }
+            }
+            group_membership=StringUtils.join(groups,","); // get rid of some misplaced ","
+            additionalVariables.add(new RuntimeContextVariable(CELLAR_CLUSTERING_ENABLED, "true", RuntimeContextVariable.STRING_TYPE));
+            additionalVariables.add(new RuntimeContextVariable(CELLAR_GROUP_MEMBERSHIP, group_membership, RuntimeContextVariable.STRING_TYPE));
+        }
         super.doInit(additionalVariables);
     }
 

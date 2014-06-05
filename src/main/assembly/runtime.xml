@@ -36,6 +36,7 @@
 			<outputDirectory>content/apache-karaf/etc</outputDirectory>
 			<includes>
 				<include>jetty.xml</include>
+				<include>org.ops4j.pax.web.cfg</include>
 			</includes>
 		</fileSet>
 	</fileSets>

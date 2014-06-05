@@ -42,6 +42,12 @@
         <property name="infoDescription" value="Specify if capture is enabled for this Application Component"/>
         <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.CaptureFeatureInfo"/>
     </supportedFeature>
+     <supportedFeature class="com.datasynapse.fabric.container.Feature">
+        <property name="name" value="Apache Cellar Clustering Support"/>
+        <property name="description" value="Support for Apache Cellar Clustering"/>
+        <property name="infoDescription" value="Provide a comma-separated list of Cellar group that a Karaf node has membership in."/>
+        <property name="infoClass" value="org.fabrician.enabler.KarafClusteringInfo"/>
+    </supportedFeature>
     
     <runtimeContextTemplate class="DefaultRuntimeContext">
         
@@ -412,7 +418,7 @@
             <property name="name" value="KARAF_BOOTUP_FEATURES"/>
             <property name="value" value="config,standard,region,package,kar,ssh,management,obr,war,webconsole"/>
             <property name="type" value="String"/>
-            <property name="description" value="Coma separated list of features to install at bootup"/>
+            <property name="description" value="Coma separated list of features to install/start at bootup"/>
         </variable>
         
         <!-- Karaf OBR features resolver settings via "${KARAF_ETC/org.apache.karaf.features.obr.cfg}"/-->
@@ -482,6 +488,14 @@
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTPS Port for web console"/>
+        </variable>
+        
+        <!-- Apache Cellar clustering feature -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="CELLAR_GROUP_MEMBERSHIP"/>
+            <property name="value" value="false"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Comma-separated list of groups that Karaf a node should belongs to"/>
         </variable>
         
         <!--  SF-specific funtionality-->
