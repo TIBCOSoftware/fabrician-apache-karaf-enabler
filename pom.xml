@@ -10,6 +10,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<distribution.os>all</distribution.os>
 		<distribution.version>3.0.1</distribution.version>
+		<component.type.version>5.5.0</component.type.version>
 		<fabric-version>5.6.0.13</fabric-version>
 		<fabric-location>${basedir}/SilverFabricSDK.jar</fabric-location>
 		<karaf.root>apache-karaf</karaf.root>

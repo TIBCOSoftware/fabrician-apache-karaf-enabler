@@ -28,7 +28,13 @@
     <startCondition class="org.fabrician.enabler.KarafStartCondition">
         <property name="pollPeriod" value="5000"/>
     </startCondition>
-
+    
+    <supportedFeature class="com.datasynapse.fabric.container.Feature">
+        <property name="name" value="HTTP Support"/>
+        <property name="description" value="Support for HTTP routing"/>
+        <property name="infoClass" value="com.datasynapse.fabric.domain.featureinfo.HttpFeatureInfo"/>
+    </supportedFeature>
+    
     <supportedFeature class="Feature">
         <property name="name" value="Application Logging Support"/>
         <property name="description" value="Support for handling of custom application logs"/>
@@ -476,18 +482,48 @@
 
        <!-- Web console feature via "${KARAF_ETC}/jetty.xml" -->
        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_HTTP_PORT"/>
+            <property name="name" value="HTTP_PORT"/>
             <property name="value" value="9181"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTP Port for web console"/>
         </variable>
         <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_HTTPS_PORT"/>
+            <property name="name" value="HTTPS_PORT"/>
             <property name="value" value="9443"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
             <property name="description" value="HTTPS Port for web console"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="KARAF_KEYSTORE_FILE"/>
+            <property name="value" value="${KARAF_HOME}/ssl/karaf.keystore"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Key store file path for incoming SSL connections with Karaf's role as SSL server"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="KARAF_KEYSTORE_PWD"/>
+            <property name="value" value="changeit"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Password for Karf server key store"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="KARAF_TRUSTSTORE_FILE"/>
+            <property name="value" value="${KARAF_HOME}/ssl/karaf.truststore"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Trust store file path for outgoing SSL connections with Karaf's role as a SSL client"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="KARAF_TRUSTSTORE_PWD"/>
+            <property name="value" value="changeit"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Password for the Karaf server trust store"/>
+        </variable>
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+            <property name="name" value="TWO_WAY_SSL_ENABLED"/>
+            <property name="value" value="false"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Whether client authentication is enabled for incoming connections to Karaf in the SSL/TLS Connector"/>
         </variable>
         
         <!-- Apache Cellar clustering feature -->

@@ -39,5 +39,13 @@
 				<include>org.ops4j.pax.web.cfg</include>
 			</includes>
 		</fileSet>
+		<fileSet>
+			<directory>src/main/resources/content/apache-karaf/ssl</directory>
+			<outputDirectory>content/apache-karaf/ssl</outputDirectory>
+			<includes>
+				<include>karaf.keystore</include>
+				<include>karaf.truststore</include>
+			</includes>
+		</fileSet>
 	</fileSets>
 </assembly>

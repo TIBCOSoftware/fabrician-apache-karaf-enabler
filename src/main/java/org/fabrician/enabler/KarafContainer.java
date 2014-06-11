@@ -32,6 +32,8 @@ import com.datasynapse.commons.util.HostUtils;
 import com.datasynapse.fabric.common.ActivationInfo;
 import com.datasynapse.fabric.common.RuntimeContextVariable;
 import com.datasynapse.fabric.container.ExecContainer;
+import com.datasynapse.fabric.container.Feature;
+import com.datasynapse.fabric.domain.featureinfo.HttpFeatureInfo;
 import com.datasynapse.fabric.util.ContainerUtils;
 import com.datasynapse.fabric.util.DynamicVarsUtils;
 
@@ -46,8 +48,6 @@ public class KarafContainer extends ExecContainer {
     private static final String KARAF_JMX_SERVICE_URL = "KARAF_JMX_SERVICE_URL";
     private static final String KARAF_DEBUG = "KARAF_DEBUG";
     private static final String KARAF_DEBUG_PORT = "KARAF_DEBUG_PORT";
-    private static final String KARAF_HTTP_PORT = "KARAF_HTTP_PORT";
-    private static final String KARAF_HTTPS_PORT = "KARAF_HTTPS_PORT";
     private static final String KARAF_WEBCONSOLE_URL = "KARAF_WEBCONSOLE_URL";
     private static final String BIND_ON_ALL_LOCAL_ADDRESSES = "BIND_ON_ALL_LOCAL_ADDRESSES";
     private static final String KARAF_BIND_ADDRESS = "KARAF_BIND_ADDRESS";
@@ -56,6 +56,7 @@ public class KarafContainer extends ExecContainer {
     private static final int UNDEFINED_PORT = -1;
     private JMXConnector jmxc = null;
     private MBeanServerConnection mBeanServer = null;
+    private HttpFeatureInfo httpFeatureInfo = null;
     private KarafClusteringInfo clusterFeatureInfo = null;
     
     public KarafContainer() {
@@ -93,7 +94,20 @@ public class KarafContainer extends ExecContainer {
     protected void doInit(List<RuntimeContextVariable> additionalVariables) throws Exception {
         getEngineLogger().fine("doInit invoked");
         clusterFeatureInfo = (KarafClusteringInfo) ContainerUtils.getFeatureInfo(KarafClusteringInfo.FEATURE_NAME, this, getCurrentDomain());
-
+        httpFeatureInfo = (HttpFeatureInfo) ContainerUtils.getFeatureInfo(Feature.HTTP_FEATURE_NAME, this, getCurrentDomain());
+        
+        boolean httpEnabled = isHttpEnabled();
+        boolean httpsEnabled = isHttpsEnabled();
+        if (!httpEnabled && !httpsEnabled) {
+            throw new Exception("HTTP or HTTPS must be enabled in the Domain");
+        }
+        if (httpEnabled && !DynamicVarsUtils.validateIntegerVariable(this,HttpFeatureInfo.HTTP_PORT_VAR)) {
+            throw new Exception("HTTP is enabled but the " + HttpFeatureInfo.HTTP_PORT_VAR + " runtime context variable is not set");
+        }
+        if (httpsEnabled && !DynamicVarsUtils.validateIntegerVariable(this, HttpFeatureInfo.HTTPS_PORT_VAR)) {
+            throw new Exception("HTTPS is enabled but the " + HttpFeatureInfo.HTTPS_PORT_VAR + " runtime context variable is not set");
+        }
+        
         if (DynamicVarsUtils.variableHasValue(KARAF_DEBUG, "true") && !DynamicVarsUtils.validateIntegerVariable(this, KARAF_DEBUG_PORT)) {
             throw new Exception(KARAF_DEBUG_PORT + " runtime context variable is not set properly");
         }
@@ -108,12 +122,7 @@ public class KarafContainer extends ExecContainer {
         if (!DynamicVarsUtils.validateIntegerVariable(this, KARAF_SSH_PORT)) {
             throw new Exception(KARAF_SSH_PORT + " runtime context variable is not set properly");
         }
-        if (!DynamicVarsUtils.validateIntegerVariable(this, KARAF_HTTP_PORT)) {
-            throw new Exception(KARAF_HTTP_PORT + " runtime context variable is not set properly");
-        }
-        if (!DynamicVarsUtils.validateIntegerVariable(this, KARAF_HTTPS_PORT)) {
-            throw new Exception(KARAF_HTTPS_PORT + " runtime context variable is not set properly");
-        }
+        
         String bindAllStr = getStringVariableValue(BIND_ON_ALL_LOCAL_ADDRESSES, "true");
         boolean bindAll = BooleanUtils.toBoolean(bindAllStr);
         String karafBindAddress = bindAll ? "0.0.0.0" : getStringVariableValue(LISTEN_ADDRESS_VAR);
@@ -159,7 +168,12 @@ public class KarafContainer extends ExecContainer {
         if (getKarafDebugPort() != UNDEFINED_PORT) {
             info.setProperty(KARAF_DEBUG_PORT, String.valueOf(getKarafDebugPort()));
         }
-        info.setProperty(KARAF_HTTP_PORT, String.valueOf(getHttpPort()));
+        if(isHttpEnabled()){
+        info.setProperty(HttpFeatureInfo.HTTP_PORT_VAR, String.valueOf(getHttpPort()));
+        }
+        if(isHttpEnabled()){
+            info.setProperty(HttpFeatureInfo.HTTPS_PORT_VAR, String.valueOf(getHttpsPort()));
+        }
         info.setProperty(KARAF_WEBCONSOLE_URL, getWebConsoleUrl());
         getEngineLogger().fine("doInstall invoked");
     }
@@ -215,6 +229,14 @@ public class KarafContainer extends ExecContainer {
         }
     }
 
+    public boolean isHttpEnabled() {
+        return (httpFeatureInfo != null ? httpFeatureInfo.isHttpEnabled() : false);
+    }
+
+    public boolean isHttpsEnabled() {
+        return (httpFeatureInfo != null ? httpFeatureInfo.isHttpsEnabled() : false);
+    }
+
     public String getKarafName() throws Exception {
         return getStringVariableValue(KARAF_NAME, DynamicVarsUtils.incrementVariableValue("root", RuntimeContextVariable.STRING_APPEND_INCREMENT));
     }
@@ -225,7 +247,16 @@ public class KarafContainer extends ExecContainer {
     }
 
     public String getWebConsoleUrl() throws Exception {
-        return "http://" + getKarafListenAddress() + ":" + getHttpPort() + "/system/console";
+        if(isHttpEnabled() && isHttpsEnabled()){
+           return "http://" + getKarafListenAddress() + ":" + getHttpPort() + "/system/console," +
+                  "https://" + getKarafListenAddress() + ":" + getHttpsPort() + "/system/console";
+        }else if(isHttpEnabled()){
+            return "http://" + getKarafListenAddress() + ":" + getHttpPort() + "/system/console";
+        }else if(isHttpsEnabled()){
+            return "https://" + getKarafListenAddress() + ":" + getHttpsPort() + "/system/console";
+        }else{
+            return "";
+        }
     }
 
     public String getJmxClientUrl() throws Exception {
@@ -268,11 +299,11 @@ public class KarafContainer extends ExecContainer {
     }
 
     private int getHttpPort() throws Exception {
-        return NumberUtils.createInteger(getStringVariableValue(KARAF_HTTP_PORT, null));
+        return NumberUtils.createInteger(getStringVariableValue(HttpFeatureInfo.HTTP_PORT_VAR, null));
     }
 
     private int getHttpsPort() throws Exception {
-        return NumberUtils.createInteger(getStringVariableValue(KARAF_HTTPS_PORT, null));
+        return NumberUtils.createInteger(getStringVariableValue(HttpFeatureInfo.HTTPS_PORT_VAR, null));
     }
 
     // try and open a server socket. If we can then close it and return false
@@ -320,9 +351,13 @@ public class KarafContainer extends ExecContainer {
                 getEngineLogger().severe("Port conflict : SSH daemon port <" + getSSHdPort() + ">" + " is already in use.");
             }
 
-            if (serverPortInUse(getHttpPort())) {
+            if (isHttpEnabled() && serverPortInUse(getHttpPort())) {
                 conflicts = true;
                 getEngineLogger().severe("Port conflict : Http port <" + getHttpPort() + ">" + " is already in use.");
+            }
+            if (isHttpsEnabled() && serverPortInUse(getHttpsPort())) {
+                conflicts = true;
+                getEngineLogger().severe("Port conflict : Https port <" + getHttpsPort() + ">" + " is already in use.");
             }
 
         } catch (Exception e) {

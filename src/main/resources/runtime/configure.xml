@@ -81,11 +81,70 @@
 		<property key="felix.fileinstall.start.level" value="${KARAF_DEPLOY_START_LEVEL}"/>
 		<property key="felix.fileinstall.active.level" value="${KARAF_DEPLOY_ACTIVE_LEVEL}"/>
 	</configFiles>
+	
+    <configFiles baseDir="${KARAF_ETC}" include="org.ops4j.pax.web.cfg" enabled="${container.isHttpEnabled()}">
+        <property key="org.osgi.service.http.enabled" value="true" />
+        <property key="org.osgi.service.http.port" value="${HTTP_PORT}"/>
+    </configFiles>
 	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml">
-		<xpath expression="/Configure/Call[@name='addConnector']/Arg/New/Set[@name='port']/Property/@default"
-			value="${KARAF_HTTP_PORT}"/>
-		<xpath expression="/Configure/Call[@name='addConnector']/Arg/New/Set[@name='confidentialPort']/Property/@default"
-			value="${KARAF_HTTPS_PORT}"/>
+		<xpath expression="/Configure" action="Add Node" enabled="${container.isHttpEnabled()}">
+			<![CDATA[
+			        <Call name="addConnector">
+                        <Arg>
+                            <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
+                                <Set name="host">
+                                    <Property name="jetty.host" />
+                                </Set>
+                                <Set name="port">${HTTP_PORT}</Set>
+                                <Set name="maxIdleTime">300000</Set>
+                                <Set name="Acceptors">2</Set>
+                                <Set name="statsOn">false</Set>
+                                <Set name="lowResourcesConnections">20000</Set>
+                                <Set name="lowResourcesMaxIdleTime">5000</Set>
+                                <Set name="resolveNames">false</Set>
+                            </New>
+                        </Arg>
+                    </Call>
+			]]>
+		</xpath>
+	</configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="org.ops4j.pax.web.cfg" enabled="${container.isHttpsEnabled()}">
+		<property key="org.osgi.service.http.secure.enabled" value="true"/>
+        <property key="org.osgi.service.http.port.secure" value="${HTTPS_PORT}"/>
+        <property key="org.ops4j.pax.web.ssl.keystore" value="${KARAF_KEYSTORE_FILE}"/>
+        <property key="org.ops4j.pax.web.ssl.password" value="${KARAF_KEYSTORE_PWD}"/>
+        <property key="org.ops4j.pax.web.ssl.keypassword" value="${KARAF_KEYSTORE_PWD}"/>
+        <property key="org.ops4j.pax.web.ssl.clientauthneeded" value="${TWO_WAY_SSL_ENABLED}"/>
+    </configFiles>
+	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml">
+		<xpath expression="/Configure" action="Add Node" enabled="${container.isHttpsEnabled()}">
+			<![CDATA[
+			        <Call name="addConnector">
+                        <Arg>
+                            <New class="org.eclipse.jetty.server.ssl.SslSelectChannelConnector">
+                                <Arg>
+                                    <New class="org.eclipse.jetty.util.ssl.SslContextFactory">
+                                        <Set name="keyStore">${KARAF_KEYSTORE_FILE}</Set>
+			                            <Set name="keyStorePassword">${KARAF_KEYSTORE_PWD}</Set>
+                                        <Set name="trustStore">${KARAF_TRUSTSTORE_FILE}</Set>
+                                        <Set name="trustStorePassword">${KARAF_TRUSTSTORE_PWD}</Set>
+                                    </New>
+                                </Arg>
+                                <Set name="host">
+                                    <Property name="jetty.host" />
+                                </Set>
+                                <Set name="port">${HTTPS_PORT}</Set>
+                                <Set name="maxIdleTime">300000</Set>
+                                <Set name="Acceptors">2</Set>
+                                <Set name="statsOn">false</Set>
+                                <Set name="lowResourcesConnections">20000</Set>
+                                <Set name="lowResourcesMaxIdleTime">5000</Set>
+                                <Set name="resolveNames">false</Set>
+                            </New>
+                        </Arg>
+                    </Call>
+	        ]]>
+		</xpath>
 	</configFiles>
 
 </containerConfig>
