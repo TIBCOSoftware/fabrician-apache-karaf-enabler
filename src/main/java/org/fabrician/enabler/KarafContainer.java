@@ -271,7 +271,7 @@ public class KarafContainer extends ExecContainer {
         return getStringVariableValue(KARAF_ADMIN_PWD, "karaf");
     }
 
-    private String getKarafBindAddress() throws Exception {
+    public String getKarafBindAddress() throws Exception {
         return getStringVariableValue(KARAF_BIND_ADDRESS, "0.0.0.0");
     }
 

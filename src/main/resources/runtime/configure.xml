@@ -86,15 +86,13 @@
         <property key="org.osgi.service.http.enabled" value="true" />
         <property key="org.osgi.service.http.port" value="${HTTP_PORT}"/>
     </configFiles>
-	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml">
-		<xpath expression="/Configure" action="Add Node" enabled="${container.isHttpEnabled()}">
+	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml" enabled="${container.isHttpEnabled()}">
+		<xpath expression="/Configure" action="Add Node">
 			<![CDATA[
 			        <Call name="addConnector">
                         <Arg>
                             <New class="org.eclipse.jetty.server.nio.SelectChannelConnector">
-                                <Set name="host">
-                                    <Property name="jetty.host" />
-                                </Set>
+                                <Set name="host">${container.getKarafBindAddress()}</Set>
                                 <Set name="port">${HTTP_PORT}</Set>
                                 <Set name="maxIdleTime">300000</Set>
                                 <Set name="Acceptors">2</Set>
@@ -114,7 +112,7 @@
         <property key="org.ops4j.pax.web.ssl.keystore" value="${KARAF_KEYSTORE_FILE}"/>
         <property key="org.ops4j.pax.web.ssl.password" value="${KARAF_KEYSTORE_PWD}"/>
         <property key="org.ops4j.pax.web.ssl.keypassword" value="${KARAF_KEYSTORE_PWD}"/>
-        <property key="org.ops4j.pax.web.ssl.clientauthneeded" value="${TWO_WAY_SSL_ENABLED}"/>
+        <property key="org.ops4j.pax.web.ssl.clientauthneeded" value="${KARAF_CLIENT_AUTH_NEEDED}"/>
     </configFiles>
 	<configFiles baseDir="${KARAF_ETC}" include="jetty.xml">
 		<xpath expression="/Configure" action="Add Node" enabled="${container.isHttpsEnabled()}">
@@ -130,9 +128,7 @@
                                         <Set name="trustStorePassword">${KARAF_TRUSTSTORE_PWD}</Set>
                                     </New>
                                 </Arg>
-                                <Set name="host">
-                                    <Property name="jetty.host" />
-                                </Set>
+                                <Set name="host">${container.getKarafBindAddress()}</Set>
                                 <Set name="port">${HTTPS_PORT}</Set>
                                 <Set name="maxIdleTime">300000</Set>
                                 <Set name="Acceptors">2</Set>

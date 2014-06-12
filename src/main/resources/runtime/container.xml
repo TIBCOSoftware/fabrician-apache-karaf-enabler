@@ -56,6 +56,39 @@
     </supportedFeature>
     
     <runtimeContextTemplate class="DefaultRuntimeContext">
+        <!-- Karaf-related launch parameters -->
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_TITLE"/>
+            <property name="value" value="Silver Fabric Karaf"/>
+            <property name="type" value="Environment"/>
+            <property name="autoIncrementType" value="Append"/>
+            <property name="description" value="Window console title"/>
+        </variable>
+        
+        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+			<property name="name" value="KARAF_HOME"/>
+			<property name="value" value="${container.getWorkDir()}/apache-karaf"/>
+			<property name="type" value="Environment"/>
+			<property name="description" value="Karaf install directory"/>
+		</variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_BASE"/>
+            <property name="value" value="${KARAF_HOME}"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Directory containing the configuration and OSGi data specific to the root Karaf instance"/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_DATA"/>
+            <property name="value" value="${KARAF_HOME}/data"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Karaf server data directory, where the Osgi bundles are resolved and cached."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_ETC"/>
+            <property name="value" value="${KARAF_HOME}/etc"/>
+            <property name="type" value="Environment"/>
+            <property name="description" value="Karaf server etc directory, where the various configuration files are located."/>
+        </variable>
         
         <!-- JDK and JVM-related runtimes-related -->
         <variable class="RuntimeContextVariable">
@@ -121,43 +154,9 @@
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="JAVA_OPTS"/>
-            <property name="value" value=""/>
+            <property name="value" value=" -server -Xms${JAVA_MIN_MEM} -Xmx${JAVA_MAX_MEM} -Dderby.system.home=${KARAF_DATA}/derby -Dderby.storage.fileSyncTransactionLog=true -Dcom.sun.management.jmxremote  -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass"/>
             <property name="type" value="Environment"/>
             <property name="description" value="Custom JVM options to use when launching JVM"/>
-        </variable>
-        
-        <!-- Karaf-related launch parameters -->
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_TITLE"/>
-            <property name="value" value="Silver Fabric Karaf"/>
-            <property name="type" value="Environment"/>
-            <property name="autoIncrementType" value="Append"/>
-            <property name="description" value="Window console title"/>
-        </variable>
-        
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
-			<property name="name" value="KARAF_HOME"/>
-			<property name="value" value="${container.getWorkDir()}/apache-karaf"/>
-			<property name="type" value="Environment"/>
-			<property name="description" value="Karaf install directory"/>
-		</variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_BASE"/>
-            <property name="value" value="${KARAF_HOME}"/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="Directory containing the configuration and OSGi data specific to the root Karaf instance"/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_DATA"/>
-            <property name="value" value="${KARAF_HOME}/data"/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="Karaf server data directory, where the Osgi bundles are resolved and cached."/>
-        </variable>
-        <variable class="RuntimeContextVariable">
-            <property name="name" value="KARAF_ETC"/>
-            <property name="value" value="${KARAF_HOME}/etc"/>
-            <property name="type" value="Environment"/>
-            <property name="description" value="Karaf server etc directory, where the various configuration files are located."/>
         </variable>
         
         <!-- Karaf version customization set in "${KARAF_ETC}/custom.properties", this overrides any values in  "${KARAF_ETC}/config.properties"-->
@@ -319,7 +318,7 @@
             <property name="name" value="KARAF_PWD_ENCRYPTION_NAME"/>
             <property name="value" value="basic"/>
             <property name="type" value="String"/>
-            <property name="description" value="Set the encryption encoding to use: 'hexadecimal' or 'base64'"/>
+            <property name="description" value="Set the encryption name to use"/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_PWD_ENCRYPTION_PREFIX"/>
@@ -352,7 +351,7 @@
             <property name="name" value="KARAF_SSH_REALM"/>
             <property name="value" value="karaf"/>
             <property name="type" value="String"/>
-            <property name="description" value="Defines which JAAS domain to use for password authentication"/>
+            <property name="description" value="Defines which JAAS domain to use for SSH password authentication"/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_SSH_KEY_FILE"/>
@@ -486,50 +485,50 @@
             <property name="value" value="9181"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
-            <property name="description" value="HTTP Port for web console"/>
+            <property name="description" value="HTTP Port for web console and Wars"/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="HTTPS_PORT"/>
             <property name="value" value="9443"/>
             <property name="type" value="String"/>
             <property name="autoIncrementType" value="Numeric"/>
-            <property name="description" value="HTTPS Port for web console"/>
+            <property name="description" value="HTTPS Port for web console and Wars"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+        <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_KEYSTORE_FILE"/>
             <property name="value" value="${KARAF_HOME}/ssl/karaf.keystore"/>
             <property name="type" value="String"/>
-            <property name="description" value="Key store file path for incoming SSL connections with Karaf's role as SSL server"/>
+            <property name="description" value="SSL keystore file path"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+        <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_KEYSTORE_PWD"/>
             <property name="value" value="changeit"/>
             <property name="type" value="String"/>
-            <property name="description" value="Password for Karf server key store"/>
+            <property name="description" value="Password for SSL keystore"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+        <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_TRUSTSTORE_FILE"/>
             <property name="value" value="${KARAF_HOME}/ssl/karaf.truststore"/>
             <property name="type" value="String"/>
-            <property name="description" value="Trust store file path for outgoing SSL connections with Karaf's role as a SSL client"/>
+            <property name="description" value="SSL truststore file path for validating SSL clients"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+        <variable class="RuntimeContextVariable">
             <property name="name" value="KARAF_TRUSTSTORE_PWD"/>
             <property name="value" value="changeit"/>
             <property name="type" value="String"/>
-            <property name="description" value="Password for the Karaf server trust store"/>
+            <property name="description" value="Password for the SSL truststore"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
-            <property name="name" value="TWO_WAY_SSL_ENABLED"/>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="KARAF_CLIENT_AUTH_NEEDED"/>
             <property name="value" value="false"/>
             <property name="type" value="Environment"/>
-            <property name="description" value="Whether client authentication is enabled for incoming connections to Karaf in the SSL/TLS Connector"/>
+            <property name="description" value="Whether client authentication is required for incoming connections to Karaf in the SSL/TLS Connector"/>
         </variable>
         
         <!-- Apache Cellar clustering feature -->
         <variable class="RuntimeContextVariable">
             <property name="name" value="CELLAR_GROUP_MEMBERSHIP"/>
-            <property name="value" value="false"/>
+            <property name="value" value="default"/>
             <property name="type" value="String"/>
             <property name="description" value="Comma-separated list of groups that Karaf a node should belongs to"/>
         </variable>
@@ -539,9 +538,9 @@
             <property name="name" value="BIND_ON_ALL_LOCAL_ADDRESSES"/>
             <property name="value" value="true"/>
             <property name="type" value="String"/>
-            <property name="description" value="Specify if all network interfaces should be bounded for the SSHd and JMX server"/>
+            <property name="description" value="Specify if all network interfaces should be bounded for the SSHd, JMX server, HTTP"/>
         </variable>
-        <variable class="com.datasynapse.fabric.common.RuntimeContextVariable">
+        <variable class="RuntimeContextVariable">
             <property name="name" value="LISTEN_ADDRESS_NET_MASK"/>
             <property name="value" value=""/>
             <property name="type" value="Environment"/>
@@ -551,13 +550,19 @@
             <property name="name" value="DELETE_RUNTIME_DIR_ON_SHUTDOWN"/>
             <property name="value" value="true"/>
             <property name="type" value="Environment"/>
-            <property name="description" value="Whether to delete the runtime directory on shutdown"/>
+            <property name="description" value="Whether to delete the Karaf runtime directory on shutdown"/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="CAPTURE_INCLUDES"/>
             <property name="value" value="${KARAF_ETC}/.*"/>
             <property name="type" value="String"/>
             <property name="description" value="Directories with settings/configuration files to capture."/>
+        </variable>
+        <variable class="RuntimeContextVariable">
+            <property name="name" value="CAPTURE_EXCLUDES"/>
+            <property name="value" value="${KARAF_ETC}/.*"/>
+            <property name="type" value="String"/>
+            <property name="description" value="Directories to excludes from capture."/>
         </variable>
     </runtimeContextTemplate>
     
