@@ -41,6 +41,7 @@ mvn package -Ddistribution.version=3.0.1
 Distribution Grid Library
 --------------------------------------
 The Distribution Grid Library is created by performing the following steps:
+
 * Download the apache-karaf-3.0.1.tar.gz or apache-karaf-3.0.1.zip from http://karaf.apache.org/index/community/download.html
 * Build the maven project with the location of the archive, operating system target and optionally the version.  Operating system is typically 'all', 'win32,win64' or 'linux,linux64'. 
 Note: For Karaf, you can use 'all' for either apache-karaf-3.0.1.tar.gz or apache-karaf-3.0.1.zip since it is currently 100% Java for Windows and Linux distributions.
@@ -48,12 +49,76 @@ Note: For Karaf, you can use 'all' for either apache-karaf-3.0.1.tar.gz or apach
 ```bash
 mvn package -Ddistribution.location=/home/you/Downloads/apache-karaf-3.0.1.tar.gz -Ddistribution.version=3.0.1 -Ddistribution.os=all
 ```
+
+Overview
+--------------------------------------
+This enabler is based on the standalone Apache Karaf 3.0.x and provides end user with some basic OOTB(out-of-the-box) features and functionality and not an end of itself.
+It is meant to be a basic, bare minimal enabler that end user can further enhance and customize with Karaf features specific to their needs.
+
+Out-of-the-box, this enabler provides some notable features:
+
+* **Provisioning of instances of Karaf**
+    * Only "root" instances are supported
+	* Root instances listen on different ports for SSH, JMX, HTTP(s) so that they don't collide
+	
+* **Container management** - via SSH remotely,JMX remotely, WebConsole
+    * manage Apache Karaf features
+    * manage OSGi bundles
+    * manage the instances
+    * manage the confgurations
+    * manage the log service
+	
+* **Http(s) and WebContainer support via PAX Web** - Jetty-based
+
+* **A set of default starter SSL keystore and truststore for Https** - via self-signed certificates
+
+* **Karaf nodes clustering** - via Apache Cellar
+    * Currently not working fully due to Apache Cellar bundle issues but the different nodes are being picked up by the cluster
+	* Runtime context variables not fully abstracted for clustering yet.
+
+Known issues with Apache Karaf 3.0.1
+-------------------------------------
+* **JMX-HTTP Bridge** - http://www.jolokia.org/
+   * The bridge is not working with latest jolokia-osgi 1.2.1 due to the new Role-Based Access Control(RBAC) to the JMX MBeans and operations in Karaf 3.0.x
+   * See a workaround at site http://modio.io/tag/osgi/
+   
+* **Clustering with Apache Cellar 2.3.x**
+   * Apache Cellar bundle is not resolving correctly
+   * Apache Cellar is waiting for a release version that is compatible with Apache Karaf 3.0.x; contact Apache Cellar for the status
+   
+   
+Limitations
+-----------
+There are some important Karaf features that are beyond the scope of this enabler that end user might need to do. We briefly outlined how end user may go about enabling and uses these
+advanced Karaf features by customizing this enabler further to suit their needs:
+
+* **Failover**
+    * With clustering support, failover is probably redundant...
+	* If needed, user can create 2 independent but identical Silver Fabric Karaf components A and B and configure a NTFS file lock or a JDBC driver lock via *${KARAF_ETC}/system.properties"*
+	See Karaf documentation on how to do this.
+	
+* **JDBC,LDAP and OGSI-based authentication**
+    * Apache Karaf provides a default realm named *karaf*.
+     This realm has two login modules: *org.apache.karaf.jaas.modules.properties.PropertiesLoginModule*,*org.apache.karaf.jaas.modules.publickey.PublickeyLoginModule*
+	 
+    1. *PropertiesLoginModule* uses the *"etc/users.properties"* file as backend for users, groups, roles and password.
+       This login module authenticates the users and returns the users' roles.
+    2. *PublickeyLoginModule* is especially used by the SSHd. It uses the *"etc/keys.properties"* file. This file contains
+       the users and a public key associated to each user.
+	* Note: In the OOTB enabler, both the properties login module and the public key login module are enabled. 
+	  When JAAS authenticates a user, it tries first of all to authenticate the user with the properties login module. If that fails, it then tries to authenticate the user with the public key login module. 
+	  If that module also fails, an error is raised.
+	  
+	* If needed,user can create a *<JAAS Login Module>.xml* in the form of *Blueprint* configuration file as stated in http://karaf.apache.org/manual/latest/developers-guide/security-framework.html.
+	  using same realm name as "karaf" for simplicity in the *jaas:config* element.
+	  Then add it to the *$KARAF_HOME}/deploy* directory as a Silver Fabric grid library *content files* so that module can be automatically activated when the Enabler is provisioned.
+	  Use Silver Fabric runtime context variables to configure ports, passwords, server, user, role, etc in the JAAS Login module xml file.
+	* If you have several realms defined using same name, you need to redefining this realm with a rank attribute value greater than 0 for the one that you want to use, so that it overrides the standard karaf realm which has the rank 0
+      
 Statistics
 --------------------------------------
 By default, the JMX monitoring service is enabled for Apache Karaf Server, but monitoring is based on  a Role-Based Access Control(RBAC) to the JMX MBeans and operations.
 By default, the Karaf "admin" role has access to all beans and operations.
-
-
 
 Tracked Statistics:
 
@@ -61,10 +126,12 @@ Tracked Statistics:
 * **Karaf JVM Committed Memory** - Comitted heap memory(MB).
 * **Karaf JVM Thread Count** - Average thread counts.
 
+* Note: End user can add additional tracked statistics by adding Silver Fabric component statistic scripting
+
 Runtime Context Variables
 --------------------------------------
 
-Karaf-related launch parameters:
+1. Karaf-related launch parameters:
         
 * **KARAF_TITLE** - Window console title
     * Default value: Silver Fabric Karaf
@@ -87,7 +154,7 @@ Karaf-related launch parameters:
     * Type: Environment
     
                 
-JDK and JVM-related runtimes-related
+2. JDK and JVM-related runtimes-related
          
 * **JDK_NAME** -  The name of the required JDK
     * Default value: j2sdk 
@@ -133,7 +200,7 @@ JDK and JVM-related runtimes-related
     * Default value:  -server -Xms${JAVA_MIN_MEM} -Xmx${JAVA_MAX_MEM} -Dderby.system.home=${KARAF_DATA}/derby -Dderby.storage.fileSyncTransactionLog=true -Dcom.sun.management.jmxremote  -XX:+UnlockDiagnosticVMOptions -XX:+UnsyncloadClass 
     * Type: Environment 
            
-Karaf configuration customization set in "${KARAF_ETC}/custom.properties", this overrides any values in  "${KARAF_ETC}/config.properties"
+3. Karaf configuration customization set in "${KARAF_ETC}/custom.properties", this overrides any values in  "${KARAF_ETC}/config.properties"
          
 * **KARAF_FRAMEWORK** -  The OSGI framework to use for Karaf instance, 'felix' or 'equinox'
     * Default value: felix 
@@ -148,8 +215,8 @@ Karaf configuration customization set in "${KARAF_ETC}/custom.properties", this 
     * Type: String 
            
 * **KARAF_SYSTEM_START_LEVEL** -  OSGI bundles with start-level less than this value is considered system bundles
-                * Default value: 50 
-                * Type: String 
+    * Default value: 50 
+    * Type: String 
             
 * **KARAF_OBR_REPOSITORIES** -  Space-separated list of OBR URL for bundle repository xmls
     * Default value:
@@ -179,7 +246,7 @@ Karaf configuration customization set in "${KARAF_ETC}/custom.properties", this 
     * Default value: 3 
     * Type: String 
             
-Karaf system, OSGI data/cache handling in "${KARAF_ETC}/system.properties"
+4. Karaf system, OSGI data/cache handling in "${KARAF_ETC}/system.properties"
          
 * **KARAF_NAME** -  Name of Karaf root instance
     * Default value: root 
@@ -197,7 +264,7 @@ Karaf system, OSGI data/cache handling in "${KARAF_ETC}/system.properties"
     * Default value: admin 
     * Type: String 
             
-Karaf logging settings set in "${KARAF_ETC}/org.ops4j.pax.logging.cfg"
+5. Karaf logging settings set in "${KARAF_ETC}/org.ops4j.pax.logging.cfg"
         
 * **KARAF_LOG_LEVEL** -  The log4J logging level to use : 'INFO','ERROR','WARN' or 'DEBUG'
     * Default value: INFO 
@@ -215,7 +282,7 @@ Karaf logging settings set in "${KARAF_ETC}/org.ops4j.pax.logging.cfg"
     * Default value: 100 
     * Type: String 
            
-Admin user as specified in "${KARAF_ETC}/user.properties"
+6. Admin user as specified in "${KARAF_ETC}/user.properties"
          
 * **KARAF_ADMIN_USER** - Karaf Admin user name 
     * Default value: karaf 
@@ -225,7 +292,7 @@ Admin user as specified in "${KARAF_ETC}/user.properties"
     * Default value: karaf 
     * Type: String 
             
-JAAS module settings at "${KARAF_ETC}/org.apache.karaf.jaas.cfg"
+7. JAAS module settings at "${KARAF_ETC}/org.apache.karaf.jaas.cfg"
          
 * **KARAF_PWD_ENCRYPTION_ENABLED** - When enabled(true), the password are encrypted at the first time an user logs in. If set to false, the password exists as plaintext perpetually 
                 * Default value: true 
@@ -251,7 +318,7 @@ JAAS module settings at "${KARAF_ETC}/org.apache.karaf.jaas.cfg"
     * Default value: {CRYPT} 
     * Type: String 
             
-Karaf access via SSHd set via "${KARAF_ETC}/org.apache.karaf.shell.cfg"
+8. Karaf access via SSHd set via "${KARAF_ETC}/org.apache.karaf.shell.cfg"
           
 * **KARAF_SSH_PORT** -  SSH port of Karaf SSHd server
     * Default value: 8101 
@@ -277,13 +344,13 @@ Karaf access via SSHd set via "${KARAF_ETC}/org.apache.karaf.shell.cfg"
     * Default value: 1024 
     * Type: String 
            
-SSH public key credentials as set in "{KARAF_ETC}/keys.properties"
+9. SSH public key credentials as set in "{KARAF_ETC}/keys.properties"
          
 * **KARAF_ADMIN_SSH_PUBLIC_KEY** - SSH public key credentials for ${KARAF_ADMIN_USER}.This is the public key part of an SSH key pair (typically found in a user's home directory in ~/.ssh/id_rsa.pub in a UNIX system)   
     * Default value: AAAAB3NzaC1kc3MAAACBAP1/U4EddRIpUt9KnC7s5Of2EbdSPO9EAMMeP4C2USZpRV1AIlH7WT2NWPq/xfW6MPbLm1Vs14E7gB00b/JmYLdrmVClpJ+f6AR7ECLCT7up1/63xhv4O1fnxqimFQ8E+4P208UewwI1VBNaFpEy9nXzrith1yrv8iIDGZ3RSAHHAAAAFQCXYFCPFSMLzLKSuYKi64QL8Fgc9QAAAIEA9+GghdabPd7LvKtcNrhXuXmUr7v6OuqC+VdMCz0HgmdRWVeOutRZT+ZxBxCBgLRJFnEj6EwoFhO3zwkyjMim4TwWeotUfI0o4KOuHiuzpnWRbqN/C/ohNWLx+2J6ASQ7zKTxvqhRkImog9/hWuWfBpKLZl6Ae1UlZAFMO/7PSSoAAACBAKKSU2PFl/qOLxIwmBZPPIcJshVe7bVUpFvyl3BbJDow8rXfskl8wO63OzP/qLmcJM0+JbcRU/53JjTuyk31drV2qxhIOsLDC9dGCWj47Y7TyhPdXh/0dthTRBy6bqGtRPxGa7gJov1xm/UuYYXPIUR/3x9MAZvZ5xvE0kYXO+rx 
     * Type: String 
            
-Karaf access via JMX set in "${KARAF_ETC}/org.apache.karaf.management.cfg"
+10. Karaf access via JMX set in "${KARAF_ETC}/org.apache.karaf.management.cfg"
          
 * **KARAF_JMX_RMI_SERVER_PORT** - The port number of the Karaf JMX RMI server 
     * Default value: 44444 
@@ -297,13 +364,13 @@ Karaf access via JMX set in "${KARAF_ETC}/org.apache.karaf.management.cfg"
     * Default value: karaf 
     * Type: String 
             
-Maven repository support to download remote Osgi bundles via "${KARAF_ETC}/org.ops4j.pax.url.mvn.cfg"
+11. Maven repository support to download remote Osgi bundles via "${KARAF_ETC}/org.ops4j.pax.url.mvn.cfg"
        
 * **KARAF_MVN_REMOTE_REPOSITORIES** - Comma-separated list of maven repositories scanned when resolving an artifact  
     * Default value: http://repo1.maven.org/maven2@id=central,http://repository.springsource.com/maven/bundles/release@id=spring.ebr.release,http://repository.springsource.com/maven/bundles/external@id=spring.ebr.external,file:${karaf.home}/${karaf.default.repository}@id=system.repository,file:${karaf.data}/kar@id=kar.repository@multi 
     * Type: String 
             
-Karaf bootup features via "${KARAF_ETC}/org.apache.karaf.features.cfg"
+12. Karaf bootup features via "${KARAF_ETC}/org.apache.karaf.features.cfg"
         
 * **KARAF_FEATURES_REPOSITORIES** -  Coma separated list of features repositories (features XML) URLs
     * Default value: mvn:org.apache.karaf.features/standard/3.0.1/xml/features,mvn:org.apache.karaf.features/enterprise/3.0.1/xml/features,mvn:org.ops4j.pax.web/pax-web-features/3.1.0/xml/features,mvn:org.apache.karaf.features/spring/3.0.1/xml/features 
@@ -313,7 +380,7 @@ Karaf bootup features via "${KARAF_ETC}/org.apache.karaf.features.cfg"
     * Default value: config,standard,region,package,kar,ssh,management,obr,war,webconsole 
     * Type: String 
             
-Karaf OBR features resolver settings via "${KARAF_ETC/org.apache.karaf.features.obr.cfg}"
+13. Karaf OBR features resolver settings via "${KARAF_ETC/org.apache.karaf.features.obr.cfg}"
          
 * **OBR_RESOLVE_OPTIONAL_IMPORTS** - Specify if features OBR resolver has to resolve optional imports 
     * Default value: false 
@@ -327,7 +394,7 @@ Karaf OBR features resolver settings via "${KARAF_ETC/org.apache.karaf.features.
     * Default value: 80 
     * Type: String 
             
-Karaf "hot" deploying settings via "${KARAF_ETC}/org.apache.felix.fileinstall-deploy.cfg"
+14. Karaf "hot" deploying settings via "${KARAF_ETC}/org.apache.felix.fileinstall-deploy.cfg"
       
 * **KARAF_DEPLOY_DIR** - Location of the deploy directory where Karaf polls for new hot deploy files 
     * Default value: ${KARAF_BASE}/deploy 
@@ -349,7 +416,7 @@ Karaf "hot" deploying settings via "${KARAF_ETC}/org.apache.felix.fileinstall-de
     * Default value: 80 
     * Type: String 
             
-HTTP,HTTPs feature via "${KARAF_ETC}/jetty.xml,org.ops4j.pax.web.cfg
+15. HTTP,HTTPs feature via "${KARAF_ETC}/jetty.xml,org.ops4j.pax.web.cfg
         
 * **HTTP_PORT** - HTTP Port for web console and WARs
     * Default value: 9181 
@@ -379,14 +446,14 @@ HTTP,HTTPs feature via "${KARAF_ETC}/jetty.xml,org.ops4j.pax.web.cfg
     * Default value: false 
     * Type: Environment 
            
-Apache Cellar clustering feature
+16. Apache Cellar clustering feature
          
 * **CELLAR_GROUP_MEMBERSHIP** -  Comma-separated list of groups that Karaf a node should belongs to
     * Default value: default 
     * Type: String 
            
         
-Others
+17. Others
          
 * **BIND_ON_ALL_LOCAL_ADDRESSES** -  Specify if all network interfaces should be bounded for the SSHd, JMX server, HTTP(s) connectors
     * Default value: true 
@@ -396,15 +463,15 @@ Others
     * Default value:
     * Type: Environment 
            
-* **DELETE_RUNTIME_DIR_ON_SHUTDOWN** -  Whether to delete the Karaf runtime directory on shutdown
+* **DELETE_RUNTIME_DIR_ON_SHUTDOWN** -  Whether to delete the Karaf runtime directory on shutdown. Note: Set to false if you need to review if any configuration is done correctly with runtime context variables.
     * Default value: true 
     * Type: Environment 
             
 * **CAPTURE_INCLUDES** -  Directories with settings/configuration files to capture
-    * Default value: ${KARAF_ETC}/.* 
+    * Default value: . 
     * Type: String 
            
 * **CAPTURE_EXCLUDES** -  Directories to excludes from capture
-    * Default value: ${KARAF_ETC}/.* 
+    * Default value: .*/instances/.*,.*/tmp/.*,.*/log/.*,.*/work/.*,.*/data/.* 
     * Type: String 
             

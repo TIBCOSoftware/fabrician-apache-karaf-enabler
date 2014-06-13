@@ -554,15 +554,15 @@
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="CAPTURE_INCLUDES"/>
-            <property name="value" value="${KARAF_ETC}/.*"/>
+            <property name="value" value="."/>
             <property name="type" value="String"/>
-            <property name="description" value="Directories with settings/configuration files to capture."/>
+            <property name="description" value="Directories that need to be captured. Generally these directories contain configuration, applications, etc."/>
         </variable>
         <variable class="RuntimeContextVariable">
             <property name="name" value="CAPTURE_EXCLUDES"/>
-            <property name="value" value="${KARAF_ETC}/.*"/>
+            <property name="value" value=".*/instances/.*,.*/tmp/.*,.*/log/.*,.*/work/.*,.*/data/.*"/>
             <property name="type" value="String"/>
-            <property name="description" value="Directories to excludes from capture."/>
+            <property name="description" value="Directories/files excluded from capture. Generally useful to exclude are log file directories, tmp directories, etc."/>
         </variable>
     </runtimeContextTemplate>
     
