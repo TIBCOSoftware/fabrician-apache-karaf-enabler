@@ -124,18 +124,23 @@ advanced Karaf features by customizing this enabler further to suit their needs:
 	  * KAR deployer is able to handle KAR files
 	  * Wrap deployer is able to handle non-OSGi jar files and turns it as OSGi bundles "on the fly".
       * WAR deployer is able to handle WAR files.
-	
+	* In the Silver Fabric terminology, a Silver Fabric component is installed into the Silver Fabric Enabler runtime(container) after it is has been started. So this "component" can be:
+	  * An WAR,jar, Blueprint file, Feature xml file, etc
+	  
     * To "install" a Silver Fabric component(aka "artifacts") into Apache Karaf Enabler runtime when after it started, user have 2 options:
-	  *  Add a component scripting file  and implement a 
+	  *  Add a component scripting file  and implement a method in script(jython,Rhino script, or jRuby)
 	  ```bash
-	     `doInstall(ActivationInfo info)` 
+	     doInstall(ActivationInfo info) 
 	  ```
-		 method in script(jython,Rhino script, or jRuby)
-	  *  Extend the class *org.fabrician.enabler.KarafContainer* and override the method
-	  ```bash
-	     `doInstall(ActivationInfo info)` 
+		 
+	  *  Extend the class *org.fabrician.enabler.KarafContainer* and override the method in Java:
+	  ```java
+	     protected void doInstall(ActivationInfo info) throws Exception 
 	  ```
-		 in Java and repackage the Apache Karaf gridlib.
+	  
+      * In both cases, user must call *super.doInstall()* first in the implementation code
+	  * User may use a SSH or JMX library to issue SSH commands or involing JMX MXBeans or just direct file copy to the *${KARAF_DEPLOY_DIR}* to achieve the desired results.
+	  * User may optionally use the capture funtionality in Silver Fabric to capture back the any configuration that they "like" to the original grid library.
 	  
 Statistics
 --------------------------------------
