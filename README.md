@@ -139,7 +139,7 @@ advanced Karaf features by customizing this enabler further to suit their needs:
 	  ```
 	  
       * In both cases, user must call *super.doInstall()* first in the implementation code
-	  * User may use a SSH or JMX library to issue SSH commands or involing JMX MXBeans or just direct file copy to the *${KARAF_DEPLOY_DIR}* to achieve the desired results.
+	  * User may use a SSH or JMX library to issue SSH commands or invoking JMX MXBeans or just direct file copy to the *${KARAF_DEPLOY_DIR}* to achieve the desired results.
 	  * User may optionally use the capture funtionality in Silver Fabric to capture back the any configuration that they "like" to the original grid library.
 	  
 Statistics
