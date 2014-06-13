@@ -101,9 +101,9 @@ advanced Karaf features by customizing this enabler further to suit their needs:
     * Apache Karaf provides a default realm named *karaf*.
      This realm has two login modules: *org.apache.karaf.jaas.modules.properties.PropertiesLoginModule*,*org.apache.karaf.jaas.modules.publickey.PublickeyLoginModule*
 	 
-    1. *PropertiesLoginModule* uses the *"etc/users.properties"* file as backend for users, groups, roles and password.
+    * PropertiesLoginModule* uses the *"etc/users.properties"* file as backend for users, groups, roles and password.
        This login module authenticates the users and returns the users' roles.
-    2. *PublickeyLoginModule* is especially used by the SSHd. It uses the *"etc/keys.properties"* file. This file contains
+    * PublickeyLoginModule* is especially used by the SSHd. It uses the *"etc/keys.properties"* file. This file contains
        the users and a public key associated to each user.
 	* Note: In the OOTB enabler, both the properties login module and the public key login module are enabled. 
 	  When JAAS authenticates a user, it tries first of all to authenticate the user with the properties login module. If that fails, it then tries to authenticate the user with the public key login module. 
@@ -118,17 +118,24 @@ advanced Karaf features by customizing this enabler further to suit their needs:
 *  **Deployment**
     * Apache Karaf polls a deployment file from the deploy folder, specified by *${KARAF_DEPLOY_DIR}* and then "delegates" the file handling to a deployer to interprets what to "deploy".
     * By default, Apache Karaf provides a set of deployers:
-      **Blueprint deployer is able to handle Blueprint XML files.
-	  **Spring deployer is able to handle Spring XML files.
-	  **Features deployer is able to handle Apache Karaf features XML files
-	  **KAR deployer is able to handle KAR files
-	  **Wrap deployer is able to handle non-OSGi jar files and turns it as OSGi bundles "on the fly".
-      **WAR deployer is able to handle WAR files.
-    * To "install" a Silver Fabric component into Apache Karaf Enabler runtime when after it started, user have 2 options:
-	  ** Add a component scripting file  and implement a 
-	     `doInstall(ActivationInfo info)` method in script(jython,Rhino script, or jRuby)
-	  ** Extend the class *org.fabrician.enabler.KarafContainer* and override the method
-	     `doInstall(ActivationInfo info)` in Java and repackage the Apache Karaf gridlib.
+      * Blueprint deployer is able to handle Blueprint XML files.
+	  * Spring deployer is able to handle Spring XML files.
+	  * Features deployer is able to handle Apache Karaf features XML files
+	  * KAR deployer is able to handle KAR files
+	  * Wrap deployer is able to handle non-OSGi jar files and turns it as OSGi bundles "on the fly".
+      * WAR deployer is able to handle WAR files.
+	
+    * To "install" a Silver Fabric component(aka "artifacts") into Apache Karaf Enabler runtime when after it started, user have 2 options:
+	  *  Add a component scripting file  and implement a 
+	  ```bash
+	     `doInstall(ActivationInfo info)` 
+	  ```
+		 method in script(jython,Rhino script, or jRuby)
+	  *  Extend the class *org.fabrician.enabler.KarafContainer* and override the method
+	  ```bash
+	     `doInstall(ActivationInfo info)` 
+	  ```
+		 in Java and repackage the Apache Karaf gridlib.
 	  
 Statistics
 --------------------------------------
