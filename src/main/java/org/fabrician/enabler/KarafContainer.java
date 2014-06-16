@@ -6,11 +6,7 @@
  */
 package org.fabrician.enabler;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -220,7 +216,7 @@ public class KarafContainer extends ExecContainer {
     }
 
     protected void revertEnvironment(Properties envSaved) {
-        for (Iterator itr = envSaved.keySet().iterator(); itr.hasNext();) {
+        for (Iterator<?> itr = envSaved.keySet().iterator(); itr.hasNext();) {
             String key = (String) itr.next();
             String val = envSaved.getProperty(key);
             if (val != null) {
@@ -370,18 +366,4 @@ public class KarafContainer extends ExecContainer {
     private static boolean isNullOrEmpty(String string) {
         return string == null || string.trim().length() == 0;
     }
-
-    private static String getHostName() throws Exception {
-        return InetAddress.getLocalHost().getHostName();
-    }
-
-    private static void copyFile(File from, File to) throws IOException {
-        Files.copy(from.toPath(), to.toPath());
-    }
-
-    private static String stripExtension(String fileName) {
-        int idx = fileName.lastIndexOf('.');
-        return (idx != -1) ? fileName.substring(0, idx) : fileName;
-    }
-
 }

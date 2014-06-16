@@ -20,8 +20,6 @@ import com.datasynapse.fabric.util.ContainerUtils;
 
 public class KarafStartCondition implements StartCondition {
     private KarafContainer container;
-    private Domain component;
-    private RuntimeContext ctx;
     private MXBeanWrapper jmxBeanWrapper;
     private transient Logger logger = ContainerUtils.getLogger(this);
     private static final long DEFAULT_POLL_PERIOD = 5000; // 5secs
@@ -33,8 +31,6 @@ public class KarafStartCondition implements StartCondition {
 
     public void init(Container c, Domain d, ProcessWrapper p, RuntimeContext ctx) {
         this.container = (KarafContainer) c;
-        this.component = d;
-        this.ctx = ctx;
     }
 
     private Logger getLogger() {

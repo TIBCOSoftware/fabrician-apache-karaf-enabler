@@ -101,8 +101,13 @@
 			<groupId>com.datasynapse.fabricserver</groupId>
 			<artifactId>fabric</artifactId>
 			<version>${fabric-version}</version>
-			<scope>compile</scope>
-			<!--<systemPath>${fabric-location}</systemPath> -->
+			<scope>system</scope>
+			<systemPath>${fabric-location}</systemPath>
 		</dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
 	</dependencies>
 </project>
